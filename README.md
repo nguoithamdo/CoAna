@@ -3,6 +3,7 @@
 **Find the oligomers that build the aggregate, not just count them.**
 
 [![PyPI](https://img.shields.io/pypi/v/coana.svg)](https://pypi.org/project/coana/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23623975.svg)](https://doi.org/10.5281/zenodo.23623975)
 [![tests](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml/badge.svg)](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
@@ -455,8 +456,12 @@ see [HISTORY.md](HISTORY.md) for how it grew.
 [ORCID 0000-0001-5642-3641](https://orcid.org/0000-0001-5642-3641) ·
 [Google Scholar](https://scholar.google.com/citations?user=0ttB9NsAAAAJ)
 
-If CoAna helps your work, please cite the software (see `CITATION.cff`, or the
-"Cite this repository" button on GitHub).
+If CoAna helps your work, please cite it:
+
+> Nguyen, T. C. CoAna: lineage-aware analysis of protein aggregation in
+> molecular dynamics. Zenodo. https://doi.org/10.5281/zenodo.23623975
+
+(or use the "Cite this repository" button on GitHub).
 
 ## License
 

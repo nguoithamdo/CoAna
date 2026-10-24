@@ -8,6 +8,7 @@ authors:
     orcid: "https://orcid.org/0000-0001-5642-3641"
     affiliation: "Truong Co Group"
 version: 3.6.2
+doi: 10.5281/zenodo.23623975
 date-released: 2026-10-24
 license: MIT
 repository-code: "https://github.com/nguoithamdo/CoAna"
