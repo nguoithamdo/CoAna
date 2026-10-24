@@ -2,6 +2,7 @@
 
 *Lineage-aware analysis of protein aggregation in molecular dynamics.*
 
+[![PyPI](https://img.shields.io/pypi/v/coana.svg)](https://pypi.org/project/coana/)
 [![tests](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml/badge.svg)](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
@@ -20,7 +21,34 @@ it was inside: incorporated, catalytic, passenger, promoting, or bystander.
 - **Tested** — every defect fixed since 3.4 has a regression test proven to fail
   without its fix.
 
-**Website:** https://nguoithamdo.github.io/CoAna/
+## What it looks like
+
+Three 5 µs Martini 3 simulations of 50 α-synuclein chains, analysed with CoAna.
+Alone, α-syn grows step by step into one 43-chain assembly. With Aβ40 and PEG it
+stalls at 23. With Aβ42 nothing grows past 6.
+
+![Largest assembly over time in three runs](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/three_runs.png)
+
+When a second peptide visits a cluster, `coana mechanism` labels the visit by
+what happened to the assembly. Most visits are brief encounters (bystander).
+Aβ40 also joins assemblies that have already committed (passenger), is there
+while an assembly grows (promoting), is present when one commits and then
+leaves (catalytic), or stays in the product (incorporated). Aβ42 visits are
+bystanders, apart from 16 during which the assembly grew.
+
+![Guest roles for Aβ40 and Aβ42](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/guest_roles.png)
+
+Every lineage, followed through splits and merges and coloured by its fate:
+on-pathway lineages feed the final aggregate; off-pathway ones are dead ends.
+
+![Lineage fate plot, α-syn alone](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/lineage_fate.png)
+
+How many clusters of each size exist at each moment (α-syn + Aβ40):
+
+![Oligomer size occupancy over time](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/size_time_heatmap.png)
+
+All four figures come from `coana precompute`, `coana lineage`,
+`coana mechanism` and `coana report` on these runs.
 
 ```bash
 pip install coana

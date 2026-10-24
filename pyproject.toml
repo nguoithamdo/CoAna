@@ -32,8 +32,9 @@ dependencies = [
 # precompute engine, read other formats, or run the benchmark that
 # cross-validates the two engines.
 [project.urls]
-Homepage = "https://nguoithamdo.github.io/CoAna/"
+Homepage = "https://github.com/nguoithamdo/CoAna"
 Source = "https://github.com/nguoithamdo/CoAna"
+Issues = "https://github.com/nguoithamdo/CoAna/issues"
 Changelog = "https://github.com/nguoithamdo/CoAna/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
