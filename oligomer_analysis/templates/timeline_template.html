@@ -1,0 +1,1182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oligomer Lineage Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+:root{
+  --ground:#f4f6f8; --surface:#ffffff; --sunken:#eef1f5; --rail:#fafbfc;
+  --ink:#14171d; --muted:#59606e; --faint:#8a91a0;
+  --line:#dde1e8; --line-strong:#c3c9d4; --grid:#e8ecf1;
+  --accent:#17706b; --accent-soft:#d8ecea;
+  --ev-split:#eb6834; --ev-merge:#2a78d6; --ev-sm:#1baf7a; --ev-other:#7c8494;
+  /* off-pathway is violet, not red: red sat ΔE 10.8 from the split-orange
+     markers (validated); this violet is ΔE 33.8 from them and clears every
+     other pair in both CVD simulations. */
+  --cls-on:#0ca30c; --cls-unc:#fab219; --cls-off:#683090;
+  --band:#f2f5f8; --band-alt:#ffffff;
+  --shadow:0 1px 2px rgba(20,23,29,.06), 0 10px 30px -22px rgba(20,23,29,.4);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0e1116; --surface:#161a21; --sunken:#1b202a; --rail:#12161c;
+    --ink:#e7eaf0; --muted:#a0a8b8; --faint:#767e8e;
+    --line:#262c37; --line-strong:#3a424f; --grid:#20262f;
+    --accent:#47bdb2; --accent-soft:#12312f;
+    --ev-split:#d95926; --ev-merge:#3987e5; --ev-sm:#199e70; --ev-other:#8b93a3;
+    --cls-off:#9048a0;
+    --band:#141821; --band-alt:#161a21;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -22px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0e1116; --surface:#161a21; --sunken:#1b202a; --rail:#12161c;
+  --ink:#e7eaf0; --muted:#a0a8b8; --faint:#767e8e;
+  --line:#262c37; --line-strong:#3a424f; --grid:#20262f;
+  --accent:#47bdb2; --accent-soft:#12312f;
+  --ev-split:#d95926; --ev-merge:#3987e5; --ev-sm:#199e70; --ev-other:#8b93a3;
+  --cls-off:#9048a0;
+  --band:#141821; --band-alt:#161a21;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -22px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  display:flex; flex-direction:column; min-height:100vh;
+  background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+
+/* ---------- masthead ---------- */
+.masthead{padding:22px 24px 16px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+h1{font-family:"IBM Plex Serif",ui-serif,Georgia,serif;font-weight:600;font-size:clamp(1.5rem,1.1rem+1.4vw,2.1rem);
+  line-height:1.14;letter-spacing:-.02em;margin:0 0 8px;text-wrap:balance}
+.standfirst{color:var(--muted);max-width:78ch;margin:0 0 14px}
+.meta-strip{display:flex;flex-wrap:wrap;gap:6px 24px;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--muted)}
+.meta-strip b{color:var(--ink);font-weight:500}
+
+/* ---------- toolbar ---------- */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;
+  padding:11px 24px;border-bottom:1px solid var(--line);background:var(--surface)}
+.tgroup{display:flex;align-items:center;gap:7px}
+.tlabel{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint);white-space:nowrap}
+button,select,input[type=text],input[type=number]{
+  font:inherit;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line-strong);border-radius:5px;padding:4px 9px;cursor:pointer}
+button:hover{background:var(--sunken)}
+button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visible,.logrow:focus-visible{
+  outline:2px solid var(--accent);outline-offset:1px}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] button.primary,
+:root:not([data-theme="light"]) button.primary{color:#08201f}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) button.primary{color:#fff}}
+button.primary:hover{filter:brightness(1.08)}
+input[type=text],input[type=number]{cursor:text}
+input[type=number]{width:72px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);
+  border-radius:999px;padding:3px 10px 3px 8px;font-size:12.5px;background:var(--surface);cursor:pointer;
+  user-select:none}
+.chip[aria-pressed="false"]{opacity:.42}
+.chip:hover{background:var(--sunken)}
+.sw{width:10px;height:10px;border-radius:2px;flex:none}
+.sw.round{border-radius:50%}
+.count{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted)}
+
+/* ---------- layout ---------- */
+.masthead,.toolbar,.foot{flex:none}
+.stage{display:grid;grid-template-columns:1fr 344px;gap:0;flex:1;min-height:460px}
+@media (max-width:1080px){.stage{grid-template-columns:1fr;flex:none}}
+.plotwrap{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--line);background:var(--surface)}
+.axisbox{flex:none;border-bottom:1px solid var(--line);background:var(--surface)}
+.scroller{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;min-height:320px}
+@media (max-width:1080px){.scroller{height:520px}}
+#plot{display:block;cursor:grab}
+#plot.dragging{cursor:grabbing}
+.minimap{flex:none;border-top:1px solid var(--line);background:var(--rail);padding:6px 0 2px}
+.empty{padding:40px 24px;color:var(--muted);text-align:center}
+
+/* ---------- rail ---------- */
+.rail{display:flex;flex-direction:column;min-height:0;background:var(--rail)}
+.railsec{border-bottom:1px solid var(--line);padding:12px 14px}
+.railsec.grow{flex:1;min-height:0;display:flex;flex-direction:column;padding-bottom:0}
+.railhead{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);margin:0 0 9px;display:flex;justify-content:space-between;gap:8px}
+.stepbar{display:flex;align-items:center;gap:5px;margin-bottom:9px}
+.stepbar button{padding:4px 8px;min-width:32px;text-align:center}
+.stepnow{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);line-height:1.45}
+.stepnow b{color:var(--ink);font-weight:500}
+.hint{font-size:11.5px;color:var(--faint);margin-top:8px;line-height:1.45}
+kbd{font-family:"IBM Plex Mono",monospace;font-size:10.5px;border:1px solid var(--line-strong);
+  border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--muted);background:var(--surface)}
+
+#logscroll{flex:1;overflow-y:auto;min-height:140px;margin:0 -14px}
+.logrow{display:grid;grid-template-columns:52px 16px 1fr;gap:8px;align-items:baseline;
+  padding:5px 14px;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-left:0;
+  border-right:0;border-top:0;width:100%;text-align:left;border-radius:0}
+.logrow:hover{background:var(--sunken)}
+.logrow[aria-current="true"]{background:var(--accent-soft)}
+.logrow .lf{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted)}
+.logrow .lg{font-size:12px;line-height:1;text-align:center}
+.logrow .lb{min-width:0}
+.logrow .lt{font-size:12.5px;font-weight:500}
+.logrow .ls{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Membership change across the event: monomers gained from, or lost to, the
+   untracked free pool.  Deliberately ink-only — hue is reserved for event type. */
+.bal{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+  border:1px solid var(--line-strong);border-radius:999px;padding:0 5px;margin-left:5px;
+  white-space:nowrap}
+.spacer{height:1px}
+
+#inspector{font-size:12.5px}
+#inspector .kv{display:grid;grid-template-columns:88px 1fr;gap:2px 10px;margin:0}
+#inspector .kv dt{color:var(--muted);font-size:11.5px}
+#inspector .kv dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:11.5px;word-break:break-word}
+#inspector .idline{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;margin-bottom:6px}
+#inspector .sizeline{font-family:"IBM Plex Mono",monospace;font-size:13px;margin:6px 0;color:var(--ink)}
+#inspector .muted{color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:1px 8px;
+  font-size:11px;font-family:"IBM Plex Mono",monospace;border:1px solid var(--line-strong)}
+.linkbtn{background:none;border:0;padding:0 2px;color:var(--accent);text-decoration:underline;
+  text-underline-offset:2px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;cursor:pointer;border-radius:3px}
+
+/* ---------- member sets (hidden until the reader opens them) ---------- */
+details.mem{margin:8px 0 0;border:1px solid var(--line);border-radius:7px;background:var(--sunken)}
+details.mem>summary{cursor:pointer;padding:5px 9px;font-size:11.5px;color:var(--muted);user-select:none}
+details.mem>summary:hover,details.mem>summary:focus-visible{color:var(--ink)}
+details.mem[open]>summary{border-bottom:1px solid var(--line)}
+.memwrap{padding:7px 9px;display:flex;flex-direction:column;gap:5px}
+.memrow{display:flex;align-items:baseline;gap:8px}
+.memlab{font-size:10.5px;color:var(--faint);min-width:78px;flex:none;
+  text-transform:uppercase;letter-spacing:.04em}
+.mset{font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.7;word-break:break-word}
+.mset .new{color:var(--accent);font-weight:600}
+.mset .gone{color:var(--faint);text-decoration:line-through}
+.memnote{font-size:10.5px;color:var(--faint)}
+
+/* ---------- tooltip ---------- */
+#tip{position:fixed;z-index:50;pointer-events:none;opacity:0;transition:opacity .08s;
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:7px;
+  box-shadow:var(--shadow);padding:9px 11px;font-size:12px;max-width:320px;line-height:1.45}
+#tip.on{opacity:1}
+#tip .tt{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:12.5px;margin-bottom:4px}
+#tip .tr{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11.5px}
+#tip .tbig{font-family:"IBM Plex Mono",monospace;font-size:13px;margin-top:5px}
+
+/* ---------- svg ---------- */
+text{fill:var(--ink)}
+.ax-t{font-family:"IBM Plex Mono",monospace;font-size:10.5px;fill:var(--muted)}
+.ax-l{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:var(--faint);letter-spacing:.08em}
+.gut-id{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--ink)}
+.gut-sub{font-family:"IBM Plex Mono",monospace;font-size:9.5px;fill:var(--faint)}
+.seg{cursor:pointer}
+.dim{opacity:.14}
+.foot{padding:9px 24px;border-top:1px solid var(--line);color:var(--faint);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;display:flex;flex-wrap:wrap;gap:4px 22px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <p class="eyebrow">CoAna · split/merge lineage layer</p>
+  <h1>Oligomer Lineage Timeline</h1>
+  <p class="standfirst">
+    Every tracked assembly, laid out on a real frame axis: bars are segments (one continuous
+    oligomer episode), connectors are the split, merge and re-arrangement events that link them.
+    Step through the events in chronological order to watch each aggregate grow, break apart and
+    re-form, one frame at a time.
+  </p>
+  <div class="meta-strip" id="meta"></div>
+</header>
+
+<div class="toolbar">
+  <div class="tgroup">
+    <span class="tlabel">Lineage</span>
+    <select id="pickmode">
+      <option value="top">Largest aggregates</option>
+      <option value="class">All of one class</option>
+      <option value="one">Single lineage</option>
+    </select>
+    <select id="picktop">
+      <option value="4">top 4</option>
+      <option value="8" selected>top 8</option>
+      <option value="16">top 16</option>
+      <option value="32">top 32</option>
+      <option value="80">top 80</option>
+    </select>
+    <select id="pickclass" hidden></select>
+    <input type="text" id="pickone" hidden placeholder="lin0" size="8" list="linlist">
+    <datalist id="linlist"></datalist>
+  </div>
+
+  <div class="tgroup">
+    <span class="tlabel">Class</span>
+    <button class="chip" data-cls="on-pathway" aria-pressed="true"><i class="sw" style="background:var(--cls-on)"></i>on-pathway</button>
+    <button class="chip" data-cls="uncertain" aria-pressed="true"><i class="sw" style="background:var(--cls-unc)"></i>uncertain</button>
+    <button class="chip" data-cls="off-pathway" aria-pressed="true"><i class="sw" style="background:var(--cls-off)"></i>off-pathway</button>
+  </div>
+
+  <div class="tgroup">
+    <span class="tlabel">Events</span>
+    <button class="chip" data-ev="split" aria-pressed="true" title="One fragment became several, and most of it carried through into them."><i class="sw round" style="background:var(--ev-split)"></i>▼ split <span class="count" id="c-split"></span></button>
+    <button class="chip" data-ev="merge" aria-pressed="true" title="Several fragments became one, and most of that one came from them."><i class="sw round" style="background:var(--ev-merge)"></i>▲ merge <span class="count" id="c-merge"></span></button>
+    <button class="chip" data-ev="split_merge" aria-pressed="true" title="Several fragments went in and several came out — members traded across the step."><i class="sw round" style="background:var(--ev-sm)"></i>◆ split+merge <span class="count" id="c-split_merge"></span></button>
+    <button class="chip" data-ev="rearrangement" aria-pressed="true" title="The fragments are linked across the step, but too little of the result came from the tracked parents to call it a clean split or merge. Open one to see the provenance number."><i class="sw round" style="background:var(--ev-other)"></i>● rearrange <span class="count" id="c-rearrangement"></span></button>
+  </div>
+
+  <div class="tgroup">
+    <span class="tlabel">Min&nbsp;size</span>
+    <input type="number" id="minsize" value="2" min="2" max="60" step="1">
+  </div>
+
+  <div class="tgroup">
+    <span class="tlabel">Frames</span>
+    <button id="zin" title="Zoom in (ctrl+wheel on the plot)">+</button>
+    <button id="zout" title="Zoom out">−</button>
+    <button id="fitall">Fit all</button>
+    <button id="fitsel" disabled>Fit selection</button>
+  </div>
+
+  <div class="tgroup" style="margin-left:auto">
+    <button id="theme" title="Toggle light / dark">◐ Theme</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="plotwrap">
+    <div class="axisbox"><svg id="axis" height="34" role="img" aria-label="Frame axis"></svg></div>
+    <div class="scroller" id="scroller">
+      <svg id="plot" role="img" aria-label="Lineage segments and events over time"></svg>
+      <div class="empty" id="empty" hidden>No lineage matches the current filters.</div>
+    </div>
+    <div class="minimap"><svg id="mini" height="44" role="img" aria-label="Whole-trajectory overview; drag to move the visible frame window"></svg></div>
+  </div>
+
+  <aside class="rail">
+    <section class="railsec">
+      <h2 class="railhead"><span>Step through events</span><span id="stepcount" class="count"></span></h2>
+      <div class="stepbar">
+        <button id="first" title="First event">⏮</button>
+        <button id="prev" title="Previous event (←)">◀</button>
+        <button id="play" class="primary" title="Play / pause (space)">▶ Play</button>
+        <button id="next" title="Next event (→)">▶</button>
+        <button id="last" title="Last event">⏭</button>
+        <select id="speed" title="Playback speed">
+          <option value="900">slow</option>
+          <option value="400" selected>1&times;</option>
+          <option value="150">fast</option>
+          <option value="40">turbo</option>
+        </select>
+        <input type="number" id="framebox" title="Jump to frame" step="1">
+      </div>
+      <div class="stepnow" id="stepnow">—</div>
+      <p class="hint">
+        <kbd>←</kbd> <kbd>→</kbd> step events · <kbd>space</kbd> play · drag the plot to pan ·
+        <kbd>ctrl</kbd>+wheel to zoom · click a bar to focus its lineage.
+      </p>
+    </section>
+
+    <section class="railsec">
+      <h2 class="railhead"><span>Inspector</span></h2>
+      <div id="inspector"><span class="muted">Hover or click a segment bar, an event marker, or a row in the log.</span></div>
+    </section>
+
+    <section class="railsec grow">
+      <h2 class="railhead"><span>Event log · time order</span><span class="count" id="logcount"></span></h2>
+      <p class="hint" style="margin:-4px 0 8px">
+        Sizes are the cluster sizes in each frame, not a conserved sum — a fragment can bind
+        or release a free monomer in the same step it splits. The <span class="bal">+1</span>
+        chip counts that change.
+      </p>
+      <div id="logscroll"><div id="logpad"></div></div>
+    </section>
+  </aside>
+</div>
+
+<div class="foot" id="foot"></div>
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const DATA = {{DATA}};
+
+/* ------------------------------------------------------------------ *
+ * Constants and lookups
+ * ------------------------------------------------------------------ */
+const GUT = 138;          // left gutter width for lineage labels
+const PADR = 16;          // right padding of the plot area
+const LANE = 20;          // vertical pitch of one packed lane
+const BARMAX = 15;        // tallest a segment bar may draw
+const BANDPAD = 7;        // padding above/below each lineage band
+const SEG_BUDGET = 2200;      // most bars drawn in one pass
+const SEG_MIN_PER_BAND = 60;  // every band keeps at least this many
+const EV_BUDGET = 1400;       // most event markers drawn in one pass
+const EV_TYPES = ["split", "merge", "split_merge", "rearrangement"];
+const EV_COLOR = {split:"--ev-split", merge:"--ev-merge", split_merge:"--ev-sm", rearrangement:"--ev-other"};
+const EV_GLYPH = {split:"▼", merge:"▲", split_merge:"◆", rearrangement:"●"};
+const EV_NAME  = {split:"split", merge:"merge", split_merge:"split + merge", rearrangement:"rearrangement"};
+const CLS_COLOR = {"on-pathway":"--cls-on", "uncertain":"--cls-unc", "off-pathway":"--cls-off"};
+const CLS_GLYPH = {"on-pathway":"●", "uncertain":"◐", "off-pathway":"○"};
+
+const segById = new Map(DATA.segments.map(s => [s.id, s]));
+const linById = new Map(DATA.lineages.map(l => [l.id, l]));
+const evById  = new Map(DATA.events.map(e => [e.id, e]));
+const segsOfLin = new Map();
+for (const s of DATA.segments) {
+  if (!segsOfLin.has(s.lin)) segsOfLin.set(s.lin, []);
+  segsOfLin.get(s.lin).push(s);
+}
+// Every event belongs to the lineage of its first known participant.
+const evLin = new Map();
+for (const e of DATA.events) {
+  const anchor = e.par[0] || e.chi[0];
+  const seg = anchor ? segById.get(anchor) : null;
+  evLin.set(e.id, seg ? seg.lin : "");
+}
+// A segment's member set at its endpoints, recovered from its bounding events:
+// the child set of the event that starts it, the parent set of the one that
+// ends it.  (Births/deaths carry only one side; interior drift between the
+// endpoints is not recorded in the payload.)
+const segM0 = new Map(), segM1 = new Map();
+for (const e of DATA.events) {
+  if (e.cm) e.chi.forEach((id, i) => { if (e.cm[i]) segM0.set(id, e.cm[i]); });
+  if (e.pm) e.par.forEach((id, i) => { if (e.pm[i]) segM1.set(id, e.pm[i]); });
+}
+const ALL_EVENTS = DATA.events
+  .filter(e => EV_TYPES.includes(e.type))
+  .sort((a, b) => a.f - b.f || a.id.localeCompare(b.id));
+
+const F_MIN = DATA.meta.frame_first, F_MAX = DATA.meta.frame_last;
+const MAXSIZE = Math.max(2, ...DATA.lineages.map(l => l.max));
+const LOGMAX = Math.log1p(MAXSIZE);
+
+/* ------------------------------------------------------------------ *
+ * State
+ * ------------------------------------------------------------------ */
+const state = {
+  pickmode: "top", topN: 8, oneLin: "", pickClass: "on-pathway",
+  classes: new Set(["on-pathway", "uncertain", "off-pathway"]),
+  types: new Set(EV_TYPES),
+  minSize: 2,
+  f0: F_MIN, f1: F_MAX,
+  frame: F_MIN,
+  evIdx: -1,
+  selSeg: null, selEv: null, focusLin: null,
+  playing: false, timer: null, speed: 400,
+};
+
+let layout = {rows: [], laneOf: new Map(), height: 0, segs: [], events: [], linIds: []};
+let plotW = 800;
+
+const $ = id => document.getElementById(id);
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => n.toLocaleString("en-US");
+
+/* ------------------------------------------------------------------ *
+ * Which lineages are on screen
+ * ------------------------------------------------------------------ */
+function pickLineages() {
+  let pool = DATA.lineages.filter(l => state.classes.has(l.cls) && l.max >= state.minSize);
+  if (state.pickmode === "one") {
+    const want = state.oneLin.trim();
+    pool = pool.filter(l => l.id === want);
+    return pool.map(l => l.id);
+  }
+  if (state.pickmode === "class") pool = pool.filter(l => l.cls === state.pickClass);
+  pool = pool.slice().sort((a, b) => b.max - a.max || b.dur - a.dur || a.id.localeCompare(b.id));
+  const n = state.pickmode === "class" ? Math.min(pool.length, 120) : state.topN;
+  return pool.slice(0, n).map(l => l.id);
+}
+
+/* Greedy lane packing: a segment reuses the first lane whose last
+   occupant has already ended. Keeps concurrent branches side by side. */
+function packLanes(segs) {
+  const laneEnd = [];
+  const laneOf = new Map();
+  for (const s of segs.slice().sort((a, b) => a.f0 - b.f0 || a.id.localeCompare(b.id))) {
+    let li = laneEnd.findIndex(end => end < s.f0);
+    if (li === -1) { li = laneEnd.length; laneEnd.push(-Infinity); }
+    laneEnd[li] = s.f1;
+    laneOf.set(s.id, li);
+  }
+  return {laneOf, n: Math.max(1, laneEnd.length)};
+}
+
+function buildLayout() {
+  const linIds = pickLineages();
+  const rows = [];
+  const laneOf = new Map();
+  const segs = [];
+  let y = 8;
+  for (const id of linIds) {
+    const lin = linById.get(id);
+    const mine = (segsOfLin.get(id) || []).filter(s => s.max >= state.minSize);
+    if (!mine.length) continue;
+    const packed = packLanes(mine);
+    const h = packed.n * LANE + BANDPAD * 2;
+    for (const s of mine) {
+      laneOf.set(s.id, y + BANDPAD + packed.laneOf.get(s.id) * LANE);
+      segs.push(s);
+    }
+    rows.push({lin, y0: y, h, lanes: packed.n});
+    y += h;
+  }
+  const segSet = new Set(segs.map(s => s.id));
+  const events = ALL_EVENTS.filter(e =>
+    state.types.has(e.type) &&
+    (e.par.some(p => segSet.has(p)) || e.chi.some(c => segSet.has(c))));
+  layout = {rows, laneOf, height: Math.max(y + 8, 80), segs, events, linIds};
+}
+
+/* ------------------------------------------------------------------ *
+ * Scales
+ * ------------------------------------------------------------------ */
+const xOf = f => GUT + (f - state.f0) / Math.max(1e-9, state.f1 - state.f0) * (plotW - GUT - PADR);
+const fOf = x => state.f0 + (x - GUT) / Math.max(1, plotW - GUT - PADR) * (state.f1 - state.f0);
+const barH = size => Math.max(3, BARMAX * Math.log1p(Math.max(1, size)) / LOGMAX);
+
+function clampWindow() {
+  const span = Math.min(F_MAX - F_MIN, Math.max(4, state.f1 - state.f0));
+  let a = state.f0, b = a + span;
+  if (a < F_MIN) { a = F_MIN; b = a + span; }
+  if (b > F_MAX) { b = F_MAX; a = b - span; }
+  state.f0 = Math.max(F_MIN, a); state.f1 = Math.min(F_MAX, b);
+}
+
+function zoom(factor, anchorFrame) {
+  const span = state.f1 - state.f0;
+  const anchor = anchorFrame == null ? (state.f0 + state.f1) / 2 : anchorFrame;
+  const t = (anchor - state.f0) / Math.max(1e-9, span);
+  const next = Math.min(F_MAX - F_MIN, Math.max(4, span * factor));
+  state.f0 = anchor - t * next; state.f1 = state.f0 + next;
+  clampWindow(); renderAll();
+}
+
+function centerOn(frame, maxSpan) {
+  let span = state.f1 - state.f0;
+  if (maxSpan && span > maxSpan) span = maxSpan;
+  state.f0 = frame - span / 2; state.f1 = state.f0 + span;
+  clampWindow();
+}
+
+/* ------------------------------------------------------------------ *
+ * Axis
+ * ------------------------------------------------------------------ */
+function niceStep(span, target) {
+  const raw = span / target;
+  const mag = Math.pow(10, Math.floor(Math.log10(Math.max(1e-9, raw))));
+  for (const m of [1, 2, 2.5, 5, 10]) if (raw <= m * mag) return m * mag;
+  return 10 * mag;
+}
+
+function renderAxis() {
+  const svg = $("axis");
+  svg.setAttribute("width", plotW);
+  const step = Math.max(1, Math.round(niceStep(state.f1 - state.f0, 9)));
+  let out = `<rect x="0" y="0" width="${GUT}" height="34" fill="var(--surface)"/>` +
+            `<text class="ax-l" x="12" y="22">FRAME</text>`;
+  const start = Math.ceil(state.f0 / step) * step;
+  for (let f = start; f <= state.f1; f += step) {
+    const x = xOf(f);
+    if (x < GUT + 2) continue;
+    out += `<line x1="${x.toFixed(1)}" y1="24" x2="${x.toFixed(1)}" y2="34" stroke="var(--line-strong)"/>`;
+    out += `<text class="ax-t" x="${x.toFixed(1)}" y="19" text-anchor="middle">${f}</text>`;
+  }
+  const px = xOf(state.frame);
+  if (px >= GUT) {
+    out += `<path d="M${px.toFixed(1)},34 l-5,-8 h10 Z" fill="var(--accent)"/>`;
+  }
+  out += `<line x1="0" y1="33.5" x2="${plotW}" y2="33.5" stroke="var(--line)"/>`;
+  svg.innerHTML = out;
+}
+
+/* ------------------------------------------------------------------ *
+ * Main plot
+ * ------------------------------------------------------------------ */
+function segVisible(s) { return s.f1 >= state.f0 && s.f0 <= state.f1; }
+
+function renderPlot() {
+  const svg = $("plot");
+  const emptyBox = $("empty");
+  if (!layout.rows.length) {
+    svg.setAttribute("width", plotW); svg.setAttribute("height", 1); svg.innerHTML = "";
+    emptyBox.hidden = false; return;
+  }
+  emptyBox.hidden = true;
+  svg.setAttribute("width", plotW);
+  svg.setAttribute("height", layout.height);
+
+  const focus = state.focusLin;
+  const parts = [];
+
+  /* bands + grid */
+  const step = Math.max(1, Math.round(niceStep(state.f1 - state.f0, 9)));
+  for (let i = 0; i < layout.rows.length; i++) {
+    const r = layout.rows[i];
+    parts.push(`<rect x="0" y="${r.y0}" width="${plotW}" height="${r.h}" fill="${i % 2 ? "var(--band-alt)" : "var(--band)"}"/>`);
+  }
+  const gstart = Math.ceil(state.f0 / step) * step;
+  for (let f = gstart; f <= state.f1; f += step) {
+    const x = xOf(f);
+    if (x < GUT) continue;
+    parts.push(`<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${layout.height}" stroke="var(--grid)"/>`);
+  }
+
+  /* Connectors first, so bars sit on top.  Same budget rule as the bars: the
+     selected event is always kept, the rest fill the remaining slots in time
+     order from the left edge of the window. */
+  const inWindow = layout.events.filter(e => e.f >= state.f0 - 2 && e.f <= state.f1 + 2);
+  let evDraw = inWindow;
+  let evCulled = 0;
+  if (inWindow.length > EV_BUDGET) {
+    const keep = inWindow.filter(e => e.id === state.selEv);
+    const stride = inWindow.length / EV_BUDGET;
+    for (let i = 0; i < EV_BUDGET; i++) {
+      const e = inWindow[Math.floor(i * stride)];
+      if (e && e.id !== state.selEv) keep.push(e);
+    }
+    evCulled = inWindow.length - keep.length;
+    evDraw = keep;
+  }
+  const drawn = new Set();
+  for (const e of evDraw) {
+    const col = `var(${EV_COLOR[e.type]})`;
+    const dash = e.type === "rearrangement" ? ` stroke-dasharray="3 3"` : "";
+    const ex = xOf(e.f);
+    if (ex < GUT - 40 || ex > plotW + 40) continue;
+    const pys = e.par.map(id => layout.laneOf.get(id)).filter(v => v != null);
+    const cys = e.chi.map(id => layout.laneOf.get(id)).filter(v => v != null);
+    if (!pys.length && !cys.length) continue;
+    const dim = focus && evLin.get(e.id) !== focus ? ' class="dim"' : "";
+    const on = state.selEv === e.id;
+    const w = on ? 2.4 : 1.2;
+    const pxs = e.par.map(id => segById.get(id)).filter(Boolean).map(s => xOf(s.f1));
+    const cxs = e.chi.map(id => segById.get(id)).filter(Boolean).map(s => xOf(s.f0));
+    const hub = ex;
+    const hubY = [...pys, ...cys].reduce((a, b) => a + b, 0) / (pys.length + cys.length);
+    for (let i = 0; i < pys.length; i++) {
+      const x0 = Math.max(GUT, pxs[i] ?? hub), y0 = pys[i];
+      parts.push(`<path${dim} d="M${x0.toFixed(1)},${y0} C${((x0 + hub) / 2).toFixed(1)},${y0} ${((x0 + hub) / 2).toFixed(1)},${hubY.toFixed(1)} ${hub.toFixed(1)},${hubY.toFixed(1)}" fill="none" stroke="${col}" stroke-width="${w}"${dash} opacity="${on ? 1 : .75}"/>`);
+    }
+    for (let i = 0; i < cys.length; i++) {
+      const x1 = Math.max(GUT, cxs[i] ?? hub), y1 = cys[i];
+      parts.push(`<path${dim} d="M${hub.toFixed(1)},${hubY.toFixed(1)} C${((hub + x1) / 2).toFixed(1)},${hubY.toFixed(1)} ${((hub + x1) / 2).toFixed(1)},${y1} ${x1.toFixed(1)},${y1}" fill="none" stroke="${col}" stroke-width="${w}"${dash} opacity="${on ? 1 : .75}"/>`);
+    }
+    if (hub >= GUT && !drawn.has(e.id)) {
+      drawn.add(e.id);
+      const rr = on ? 5.5 : 3.6;
+      parts.push(`<circle${dim} class="ev" data-ev="${e.id}" cx="${hub.toFixed(1)}" cy="${hubY.toFixed(1)}" r="${rr}" fill="${col}" stroke="var(--surface)" stroke-width="1.5"/>`);
+      if (on) parts.push(`<circle cx="${hub.toFixed(1)}" cy="${hubY.toFixed(1)}" r="9" fill="none" stroke="${col}" stroke-width="1.5" opacity=".55"/>`);
+    }
+  }
+
+  /* Segment bars.  Zoomed all the way out there are more segments than there
+     are pixels, so draw the biggest ones first and stop at the budget rather
+     than emitting tens of thousands of sub-pixel rectangles.  The footer says
+     how many were held back — the cap is never silent. */
+  let visible = layout.segs.filter(segVisible);
+  let culled = 0;
+  if (visible.length > SEG_BUDGET) {
+    // Share the budget across bands so a lineage never renders as an empty
+    // stripe just because a bigger neighbour used up every slot.
+    const byLin = new Map();
+    for (const s of visible) {
+      if (!byLin.has(s.lin)) byLin.set(s.lin, []);
+      byLin.get(s.lin).push(s);
+    }
+    const total = visible.length;
+    const kept = [];
+    for (const [, list] of byLin) {
+      const quota = Math.max(SEG_MIN_PER_BAND, Math.floor(SEG_BUDGET * list.length / total));
+      if (list.length <= quota) { kept.push(...list); continue; }
+      list.sort((a, b) => b.max - a.max || b.dur - a.dur);
+      kept.push(...list.slice(0, quota));
+    }
+    culled = total - kept.length;
+    visible = kept;
+  }
+  let shown = 0;
+  for (const s of visible) {
+    shown++;
+    const lin = linById.get(s.lin);
+    const col = `var(${CLS_COLOR[lin ? lin.cls : "uncertain"]})`;
+    const y = layout.laneOf.get(s.id);
+    let x0 = xOf(s.f0), x1 = xOf(s.f1);
+    if (x1 - x0 < 2.5) x1 = x0 + 2.5;
+    x0 = Math.max(GUT, x0); x1 = Math.min(plotW - 2, Math.max(x1, GUT + 2.5));
+    if (x1 <= GUT) continue;
+    const h = barH(s.max);
+    const dim = focus && s.lin !== focus ? ' class="seg dim"' : ' class="seg"';
+    const on = state.selSeg === s.id;
+    const w = Math.max(2.5, x1 - x0 - (x1 - x0 > 6 ? 1.5 : 0));
+    parts.push(`<rect${dim} data-seg="${s.id}" x="${x0.toFixed(1)}" y="${(y - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${col}" opacity="${on ? 1 : .82}"${on ? ' stroke="var(--ink)" stroke-width="1.2"' : ""}/>`);
+    // Size profile, only where there is room to read it.
+    if (w > 26 && s.trace && s.trace.length > 2) {
+      const pts = s.trace.map((v, i) => {
+        const px = x0 + (i / (s.trace.length - 1)) * w;
+        return `${px.toFixed(1)},${(y - barH(v)).toFixed(1)}`;
+      }).join(" ");
+      parts.push(`<polyline${dim} points="${pts}" fill="none" stroke="var(--surface)" stroke-width="1.1" opacity=".85" pointer-events="none"/>`);
+    }
+    if (w > 6) {
+      parts.push(`<line${dim} x1="${x0.toFixed(1)}" y1="${y + 0.5}" x2="${(x0 + w).toFixed(1)}" y2="${y + 0.5}" stroke="${col}" stroke-width="1" opacity=".45" pointer-events="none"/>`);
+    }
+  }
+
+  /* playhead */
+  const ph = xOf(state.frame);
+  if (ph >= GUT) {
+    parts.push(`<line x1="${ph.toFixed(1)}" y1="0" x2="${ph.toFixed(1)}" y2="${layout.height}" stroke="var(--accent)" stroke-width="1.2" opacity=".85" pointer-events="none"/>`);
+  }
+
+  /* gutter last: it must occlude anything that scrolled under it */
+  parts.push(`<rect x="0" y="0" width="${GUT}" height="${layout.height}" fill="var(--surface)"/>`);
+  parts.push(`<line x1="${GUT - .5}" y1="0" x2="${GUT - .5}" y2="${layout.height}" stroke="var(--line)"/>`);
+  for (const r of layout.rows) {
+    const c = `var(${CLS_COLOR[r.lin.cls]})`;
+    const dim = focus && r.lin.id !== focus ? ' class="dim"' : "";
+    const ty = r.y0 + Math.min(r.h / 2 + 4, 18);
+    parts.push(`<rect${dim} x="0" y="${r.y0 + 2}" width="3" height="${r.h - 4}" fill="${c}"/>`);
+    parts.push(`<text${dim} class="gut-id" data-lin="${r.lin.id}" x="10" y="${ty}" style="cursor:pointer">${esc(r.lin.id)}</text>`);
+    parts.push(`<text${dim} class="gut-sub" x="10" y="${ty + 12}">${r.lin.max}-mer · ${r.lin.nseg} seg</text>`);
+  }
+
+  svg.innerHTML = parts.join("");
+  const held = [];
+  if (culled) held.push(`${fmt(culled)} smaller bars`);
+  if (evCulled) held.push(`${fmt(evCulled)} event markers`);
+  $("foot").innerHTML =
+    `<span><b>${fmt(layout.linIds.length)}</b> lineage(s) · <b>${fmt(shown)}</b> segment bars drawn · ` +
+      `<b>${fmt(layout.events.length)}</b> events in the log</span>` +
+    `<span>frames ${Math.round(state.f0)}–${Math.round(state.f1)} of ${F_MIN}–${F_MAX}</span>` +
+    (held.length
+      ? `<span style="color:var(--ev-split)">${held.join(" and ")} hidden at this zoom — zoom in to draw them all</span>`
+      : `<span>bar height ∝ log(peak size) · bar length = segment lifetime</span>`);
+}
+
+/* ------------------------------------------------------------------ *
+ * Minimap
+ * ------------------------------------------------------------------ */
+function renderMini() {
+  const svg = $("mini");
+  const W = plotW, H = 44, x0 = GUT, x1 = W - PADR;
+  svg.setAttribute("width", W);
+  const span = F_MAX - F_MIN || 1;
+  const mx = f => x0 + (f - F_MIN) / span * (x1 - x0);
+  const NB = Math.max(40, Math.min(480, Math.floor(x1 - x0)));
+  const bins = new Float64Array(NB);
+  for (const e of layout.events) {
+    const i = Math.min(NB - 1, Math.floor((e.f - F_MIN) / span * NB));
+    bins[i] += 1;
+  }
+  const peak = Math.max(1, ...bins);
+  let out = `<text class="ax-l" x="12" y="17">OVERVIEW</text>` +
+            `<text class="ax-t" x="12" y="32" style="font-size:9.5px">drag to move window</text>` +
+            `<rect x="${x0}" y="6" width="${x1 - x0}" height="32" fill="var(--sunken)" rx="3"/>`;
+  const bw = (x1 - x0) / NB;
+  for (let i = 0; i < NB; i++) {
+    if (!bins[i]) continue;
+    const h = 2 + (bins[i] / peak) * 26;
+    out += `<rect x="${(x0 + i * bw).toFixed(2)}" y="${(38 - h).toFixed(1)}" width="${Math.max(0.8, bw - 0.3).toFixed(2)}" height="${h.toFixed(1)}" fill="var(--faint)" opacity=".65"/>`;
+  }
+  for (const r of layout.rows) {
+    out += `<rect x="${mx(r.lin.f0).toFixed(1)}" y="6" width="${Math.max(1, mx(r.lin.f1) - mx(r.lin.f0)).toFixed(1)}" height="2" fill="var(${CLS_COLOR[r.lin.cls]})" opacity=".8"/>`;
+  }
+  const a = mx(state.f0), b = mx(state.f1);
+  out += `<rect id="brush" x="${a.toFixed(1)}" y="5" width="${Math.max(3, b - a).toFixed(1)}" height="34" fill="var(--accent)" opacity=".14"/>`;
+  out += `<rect x="${a.toFixed(1)}" y="5" width="${Math.max(3, b - a).toFixed(1)}" height="34" fill="none" stroke="var(--accent)" stroke-width="1.2" rx="2"/>`;
+  const pf = mx(state.frame);
+  out += `<line x1="${pf.toFixed(1)}" y1="4" x2="${pf.toFixed(1)}" y2="40" stroke="var(--accent)" stroke-width="1.4"/>`;
+  svg.innerHTML = out;
+}
+
+/* ------------------------------------------------------------------ *
+ * Event log (virtualised)
+ * ------------------------------------------------------------------ */
+const ROWH = 42;
+function sizeStory(e) {
+  const p = e.psz.length ? e.psz.join(" + ") : "—";
+  const c = e.csz.length ? e.csz.join(" + ") : "—";
+  return `${p} → ${c}`;
+}
+/* Cluster sizes across an event are per-frame counts, not a conserved sum:
+   free monomers (below cluster_min_size) can bind or be released in the same
+   step.  `balance` states that difference so the arithmetic never looks broken. */
+function balanceTag(e) {
+  const bits = [];
+  if (e.g) bits.push(`+${e.g}`);
+  if (e.l) bits.push(`−${e.l}`);
+  return bits.join(" ");
+}
+function balanceWords(e) {
+  const bits = [];
+  if (e.g) bits.push(`${e.g} monomer${e.g > 1 ? "s" : ""} joined from solution`);
+  if (e.l) bits.push(`${e.l} released below the ${DATA.meta.params.cluster_min_size}-mer tracking floor`);
+  return bits.length ? bits.join(", ") : "members exactly conserved";
+}
+/* Why this event carries the name it does.  `cov` is the same provenance
+   fraction `_classify_event_type` tests against union_cover_min: a many→1 event
+   is only a "merge" when enough of the child came from the tracked parents, and
+   a 1→many event is only a "split" when enough of the parent survived into the
+   children.  Below the bar the layer declines to over-interpret and says
+   "rearrangement" — so the page should show the number behind that call. */
+function provenanceWords(e) {
+  if (e.cov == null) return "";
+  const pct = Math.round(e.cov * 100);
+  const bar = Math.round(DATA.meta.params.union_cover_min * 100);
+  const manyToOne = e.psz.length > 1;
+  const what = manyToOne
+    ? `${pct}% of the ${e.csz[0]}-mer came from the tracked parents`
+    : `${pct}% of the ${e.psz[0]}-mer carried through into the children`;
+  if (e.type === "rearrangement") {
+    return `${what} — under the ${bar}% bar, so this is called a rearrangement rather than a ` +
+           `clean ${manyToOne ? "merge" : "split"}: the rest is material the tracker was not following.`;
+  }
+  return `${what}, at or above the ${bar}% bar for a clean ${manyToOne ? "merge" : "split"}.`;
+}
+function renderLog(scrollToCurrent) {
+  const box = $("logscroll"), pad = $("logpad");
+  const list = layout.events;
+  $("logcount").textContent = fmt(list.length);
+  $("stepcount").textContent = list.length ? `${state.evIdx + 1} / ${fmt(list.length)}` : "0";
+  pad.style.height = (list.length * ROWH) + "px";
+  pad.style.position = "relative";
+  if (scrollToCurrent && state.evIdx >= 0) {
+    const want = state.evIdx * ROWH - box.clientHeight / 2 + ROWH / 2;
+    box.scrollTop = Math.max(0, Math.min(want, list.length * ROWH - box.clientHeight));
+  }
+  const first = Math.max(0, Math.floor(box.scrollTop / ROWH) - 4);
+  const last = Math.min(list.length, first + Math.ceil(box.clientHeight / ROWH) + 8);
+  let out = "";
+  for (let i = first; i < last; i++) {
+    const e = list[i];
+    const col = `var(${EV_COLOR[e.type]})`;
+    const cur = i === state.evIdx;
+    out += `<button class="logrow" type="button" aria-current="${cur}" data-evrow="${i}" ` +
+      `style="position:absolute;top:${i * ROWH}px;left:0;right:0;height:${ROWH}px">` +
+      `<span class="lf">f&thinsp;${e.f}</span>` +
+      `<span class="lg" style="color:${col}">${EV_GLYPH[e.type]}</span>` +
+      `<span class="lb"><span class="lt">${EV_NAME[e.type]}</span> ` +
+      `<span class="ls">${esc(sizeStory(e))}</span>` +
+      (balanceTag(e) ? `<span class="bal" title="${esc(balanceWords(e))}">${esc(balanceTag(e))}</span>` : "") +
+      `</span></button>`;
+  }
+  pad.innerHTML = out;
+}
+
+/* ------------------------------------------------------------------ *
+ * Inspector + step readout
+ * ------------------------------------------------------------------ */
+function classPill(cls) {
+  return `<span class="pill" style="color:var(${CLS_COLOR[cls]})">${CLS_GLYPH[cls]} ${esc(cls)}</span>`;
+}
+function segLink(id) {
+  const s = segById.get(id);
+  return `<button class="linkbtn" data-goseg="${id}">${esc(id)}</button>${s ? `<span class="muted">(${s.max})</span>` : ""}`;
+}
+
+/* Member sets, hidden behind a <details> click: the default view stays a
+   summary, and the monomer ids — {32, 69, 72, 73, …} — appear only when the
+   reader opens the panel to explore.  A bold member is new on the right-hand
+   side of the step; a struck-through one does not survive to it. */
+function memberSetText(set, mark) {
+  return `<span class="mset">{${set.map(m => {
+    const cls = mark(m);
+    return cls ? `<span class="${cls}">${m}</span>` : `${m}`;
+  }).join(", ")}}</span>`;
+}
+function membersPanel(e) {
+  if (!e.pm || !e.cm || (!e.pm.length && !e.cm.length)) return "";
+  const pu = new Set(e.pm.flat()), cu = new Set(e.cm.flat());
+  const pmark = m => cu.has(m) ? "" : "gone";
+  const cmark = m => pu.has(m) ? "" : "new";
+  const rows = [];
+  if (e.pm.length) rows.push(`<div class="memrow"><span class="memlab">f${e.fprev} before</span>` +
+    `<span>${e.pm.map(s => memberSetText(s, pmark)).join(" + ")}</span></div>`);
+  if (e.cm.length) rows.push(`<div class="memrow"><span class="memlab">f${e.f} after</span>` +
+    `<span>${e.cm.map(s => memberSetText(s, cmark)).join(" + ")}</span></div>`);
+  return `<details class="mem"><summary>member sets — which monomers went where</summary>` +
+    `<div class="memwrap">${rows.join("")}` +
+    `<div class="memnote"><b>bold</b> = newly bound from solution · ` +
+    `<s>struck</s> = does not survive the step</div></div></details>`;
+}
+function segMembersPanel(s) {
+  const m0 = segM0.get(s.id), m1 = segM1.get(s.id);
+  if (!m0 && !m1) return "";
+  const a = new Set(m0 || []), b = new Set(m1 || []);
+  const rows = [];
+  if (m0) rows.push(`<div class="memrow"><span class="memlab">at f${s.f0}</span>` +
+    `<span>${memberSetText(m0, m => (m1 && !b.has(m)) ? "gone" : "")}</span></div>`);
+  if (m1) rows.push(`<div class="memrow"><span class="memlab">at f${s.f1}</span>` +
+    `<span>${memberSetText(m1, m => (m0 && !a.has(m)) ? "new" : "")}</span></div>`);
+  return `<details class="mem"><summary>member sets — which monomers</summary>` +
+    `<div class="memwrap">${rows.join("")}` +
+    `<div class="memnote"><b>bold</b> = joined during this segment · ` +
+    `<s>struck</s> = left before its end` +
+    ((m0 && m1) ? "" : " · only one endpoint is recorded for this segment") +
+    `</div></div></details>`;
+}
+
+function showSegment(id) {
+  const s = segById.get(id); if (!s) return;
+  const lin = linById.get(s.lin);
+  $("inspector").innerHTML =
+    `<div class="idline">${esc(s.id)}</div>` +
+    `<div style="margin-bottom:7px">${lin ? classPill(lin.cls) : ""} <span class="pill">${esc(s.lin)}</span></div>` +
+    `<div class="sizeline">size ${s.s0} → ${s.s1} <span class="muted">(peak ${s.max}, mean ${s.mean})</span></div>` +
+    `<dl class="kv">` +
+    `<dt>frames</dt><dd>${s.f0} – ${s.f1} (${s.dur})</dd>` +
+    `<dt>starts by</dt><dd>${esc(s.ev0)}</dd>` +
+    `<dt>ends by</dt><dd>${esc(s.ev1)}</dd>` +
+    `<dt>parents</dt><dd>${s.par.length ? s.par.map(segLink).join(" ") : "<span class='muted'>none</span>"}</dd>` +
+    `<dt>children</dt><dd>${s.chi.length ? s.chi.map(segLink).join(" ") : "<span class='muted'>none</span>"}</dd>` +
+    (lin ? `<dt>lineage</dt><dd>${lin.nseg} segments, ${lin.nev} events, peak ${lin.max}-mer</dd>` +
+           `<dt>scores</dt><dd>contribution ${lin.contribution} · growth ${lin.growth} · persistence ${lin.persistence} · trap ${lin.trap}</dd>` : "") +
+    `</dl>` +
+    segMembersPanel(s);
+}
+
+function showEvent(id) {
+  const e = evById.get(id); if (!e) return;
+  const col = `var(${EV_COLOR[e.type]})`;
+  $("inspector").innerHTML =
+    `<div class="idline" style="color:${col}">${EV_GLYPH[e.type]} ${esc(EV_NAME[e.type])}</div>` +
+    `<div class="sizeline">${esc(sizeStory(e))}` +
+      (balanceTag(e) ? ` <span class="bal">${esc(balanceTag(e))}</span>` : "") + `</div>` +
+    `<p class="muted" style="margin:0 0 8px;font-size:11.5px">${esc(balanceWords(e))}</p>` +
+    `<dl class="kv">` +
+    `<dt>frame</dt><dd>${e.fprev} → ${e.f}</dd>` +
+    `<dt>lineage</dt><dd>${esc(evLin.get(e.id) || "—")}</dd>` +
+    (e.cov == null ? "" : `<dt>provenance</dt><dd>${Math.round(e.cov * 100)}% ` +
+      `<span class="muted">(bar ${Math.round(DATA.meta.params.union_cover_min * 100)}%)</span></dd>`) +
+    `<dt>parents</dt><dd>${e.par.length ? e.par.map(segLink).join(" ") : "<span class='muted'>none</span>"}</dd>` +
+    `<dt>children</dt><dd>${e.chi.length ? e.chi.map(segLink).join(" ") : "<span class='muted'>none</span>"}</dd>` +
+    `</dl>` +
+    membersPanel(e) +
+    (provenanceWords(e) ? `<p class="muted" style="margin:8px 0 0;font-size:11.5px">${esc(provenanceWords(e))}</p>` : "") +
+    `<p class="muted" style="margin:8px 0 0;font-size:11.5px">` +
+    `${e.par.length} parent segment(s) → ${e.chi.length} child segment(s) between frames ${e.fprev} and ${e.f}.</p>`;
+}
+
+function renderStepNow() {
+  const list = layout.events;
+  const e = state.evIdx >= 0 ? list[state.evIdx] : null;
+  $("framebox").value = Math.round(state.frame);
+  $("stepnow").innerHTML = e
+    ? `frame <b>${e.f}</b> · <span style="color:var(${EV_COLOR[e.type]})">${EV_GLYPH[e.type]} <b>${EV_NAME[e.type]}</b></span><br>` +
+      `<span class="muted">${esc(sizeStory(e))} · ${esc(evLin.get(e.id) || "")}</span>`
+    : `<span class="muted">${list.length ? "press ▶ or → to walk the events in time order" : "no events match the filters"}</span>`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Selection / navigation
+ * ------------------------------------------------------------------ */
+function gotoEvent(i, {center = true} = {}) {
+  const list = layout.events;
+  if (!list.length) { state.evIdx = -1; renderStepNow(); renderLog(false); return; }
+  state.evIdx = Math.max(0, Math.min(list.length - 1, i));
+  const e = list[state.evIdx];
+  state.selEv = e.id; state.selSeg = null; state.frame = e.f;
+  if (center && (e.f < state.f0 + (state.f1 - state.f0) * .1 || e.f > state.f1 - (state.f1 - state.f0) * .1)) {
+    centerOn(e.f);
+  }
+  showEvent(e.id);
+  renderAll(); renderLog(true);
+}
+
+function setFocus(id) {
+  state.focusLin = id;
+  $("fitsel").disabled = !id;
+  renderAll();
+}
+/* Gutter label toggles focus, and fits the window to the lineage when turning it on. */
+function toggleFocus(id) {
+  if (state.focusLin === id) { setFocus(null); return; }
+  const lin = linById.get(id);
+  if (lin) { state.f0 = lin.f0; state.f1 = Math.max(lin.f1, lin.f0 + 4); clampWindow(); }
+  setFocus(id);
+}
+
+function renderAll() { renderAxis(); renderPlot(); renderMini(); renderStepNow(); }
+
+function rebuild({keepWindow = true} = {}) {
+  buildLayout();
+  if (!keepWindow) { state.f0 = F_MIN; state.f1 = F_MAX; }
+  // Keep the current event selection meaningful after a filter change.
+  const list = layout.events;
+  if (state.selEv) {
+    const at = list.findIndex(e => e.id === state.selEv);
+    state.evIdx = at;
+    if (at === -1) state.selEv = null;
+  }
+  if (state.evIdx === -1 && list.length) state.evIdx = 0;
+  if (!list.length) state.evIdx = -1;
+  renderAll(); renderLog(true);
+}
+
+/* ------------------------------------------------------------------ *
+ * Tooltip
+ * ------------------------------------------------------------------ */
+const tip = $("tip");
+function showTip(html, ev) {
+  tip.innerHTML = html; tip.classList.add("on");
+  const r = tip.getBoundingClientRect();
+  let x = ev.clientX + 14, y = ev.clientY + 16;
+  if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 14;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+}
+const hideTip = () => tip.classList.remove("on");
+
+function tipForSeg(s) {
+  const lin = linById.get(s.lin);
+  return `<div class="tt">${esc(s.id)}</div>` +
+    `<div class="tr">${esc(s.lin)} · ${lin ? esc(lin.cls) : ""}</div>` +
+    `<div class="tbig">size ${s.s0} → ${s.s1} <span class="tr">(peak ${s.max})</span></div>` +
+    `<div class="tr">frames ${s.f0}–${s.f1} · ${s.dur} frame(s)</div>` +
+    `<div class="tr">in: ${esc(s.ev0)} · out: ${esc(s.ev1)}</div>`;
+}
+function tipForEv(e) {
+  return `<div class="tt" style="color:var(${EV_COLOR[e.type]})">${EV_GLYPH[e.type]} ${esc(EV_NAME[e.type])}</div>` +
+    `<div class="tr">frame ${e.fprev} → ${e.f}</div>` +
+    `<div class="tbig">${esc(sizeStory(e))}` +
+      (balanceTag(e) ? ` <span style="color:var(--muted)">${esc(balanceTag(e))}</span>` : "") + `</div>` +
+    `<div class="tr">${e.par.length} parent(s) → ${e.chi.length} child(ren)</div>` +
+    `<div class="tr">${esc(balanceWords(e))}</div>` +
+    (provenanceWords(e) ? `<div class="tr">${esc(provenanceWords(e))}</div>` : "");
+}
+
+/* ------------------------------------------------------------------ *
+ * Wiring
+ * ------------------------------------------------------------------ */
+function measure() {
+  plotW = Math.max(420, $("scroller").clientWidth);
+}
+
+const plot = $("plot");
+plot.addEventListener("mousemove", ev => {
+  const t = ev.target;
+  if (t.dataset && t.dataset.seg) { const s = segById.get(t.dataset.seg); if (s) return showTip(tipForSeg(s), ev); }
+  if (t.dataset && t.dataset.ev) { const e = evById.get(t.dataset.ev); if (e) return showTip(tipForEv(e), ev); }
+  hideTip();
+});
+plot.addEventListener("mouseleave", hideTip);
+
+plot.addEventListener("click", ev => {
+  const t = ev.target;
+  if (t.dataset && t.dataset.seg) {
+    const s = segById.get(t.dataset.seg);
+    state.selSeg = s.id; state.selEv = null; state.frame = s.f0;
+    showSegment(s.id);
+    setFocus(s.lin);                 // clicking a bar always focuses, never un-focuses
+    return;
+  }
+  if (t.dataset && t.dataset.ev) {
+    const at = layout.events.findIndex(e => e.id === t.dataset.ev);
+    if (at >= 0) gotoEvent(at, {center: false});
+    return;
+  }
+  if (t.dataset && t.dataset.lin) { toggleFocus(t.dataset.lin); return; }
+});
+
+/* drag = pan, ctrl+wheel = zoom */
+let drag = null;
+plot.addEventListener("mousedown", ev => {
+  if (ev.target.dataset && (ev.target.dataset.seg || ev.target.dataset.ev)) return;
+  drag = {x: ev.clientX, f0: state.f0, f1: state.f1, moved: false};
+  plot.classList.add("dragging");
+});
+window.addEventListener("mousemove", ev => {
+  if (!drag) return;
+  const dx = ev.clientX - drag.x;
+  if (Math.abs(dx) > 2) drag.moved = true;
+  const perPx = (drag.f1 - drag.f0) / Math.max(1, plotW - GUT - PADR);
+  state.f0 = drag.f0 - dx * perPx; state.f1 = drag.f1 - dx * perPx;
+  clampWindow(); renderAll();
+});
+window.addEventListener("mouseup", () => { drag = null; plot.classList.remove("dragging"); });
+
+plot.addEventListener("wheel", ev => {
+  if (!ev.ctrlKey && !ev.metaKey) return;      // plain wheel keeps scrolling the lanes
+  ev.preventDefault();
+  const rect = plot.getBoundingClientRect();
+  zoom(ev.deltaY > 0 ? 1.25 : 0.8, fOf(ev.clientX - rect.left));
+}, {passive: false});
+
+/* minimap brush */
+const mini = $("mini");
+let mdrag = null;
+function miniFrame(ev) {
+  const r = mini.getBoundingClientRect();
+  const x0 = GUT, x1 = plotW - PADR;
+  const t = (ev.clientX - r.left - x0) / Math.max(1, x1 - x0);
+  return F_MIN + Math.max(0, Math.min(1, t)) * (F_MAX - F_MIN);
+}
+mini.addEventListener("mousedown", ev => {
+  const f = miniFrame(ev);
+  mdrag = {span: state.f1 - state.f0};
+  centerOn(f); renderAll();
+});
+window.addEventListener("mousemove", ev => { if (mdrag) { centerOn(miniFrame(ev)); renderAll(); } });
+window.addEventListener("mouseup", () => { mdrag = null; });
+
+/* log */
+$("logscroll").addEventListener("scroll", () => renderLog(false));
+$("logscroll").addEventListener("click", ev => {
+  const row = ev.target.closest("[data-evrow]");
+  if (row) gotoEvent(parseInt(row.dataset.evrow, 10));
+});
+$("inspector").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-goseg]");
+  if (!b) return;
+  const s = segById.get(b.dataset.goseg);
+  if (!s) return;
+  state.selSeg = s.id; state.selEv = null;
+  state.frame = s.f0;
+  if (s.f0 < state.f0 || s.f1 > state.f1) centerOn((s.f0 + s.f1) / 2);
+  showSegment(s.id);
+  if (state.focusLin && state.focusLin !== s.lin) state.focusLin = s.lin;
+  renderAll();
+});
+
+/* stepper */
+$("first").onclick = () => gotoEvent(0);
+$("prev").onclick  = () => gotoEvent(state.evIdx - 1);
+$("next").onclick  = () => gotoEvent(state.evIdx + 1);
+$("last").onclick  = () => gotoEvent(layout.events.length - 1);
+$("framebox").onchange = e => {
+  const f = Math.max(F_MIN, Math.min(F_MAX, parseInt(e.target.value, 10) || F_MIN));
+  state.frame = f;
+  if (f < state.f0 || f > state.f1) centerOn(f);
+  const at = layout.events.findIndex(x => x.f >= f);
+  if (at >= 0) { state.evIdx = at; state.selEv = layout.events[at].id; showEvent(state.selEv); }
+  renderAll(); renderLog(true);
+};
+function setPlaying(on) {
+  state.playing = on;
+  $("play").innerHTML = on ? "❚❚ Pause" : "▶ Play";
+  if (state.timer) { clearInterval(state.timer); state.timer = null; }
+  if (on) state.timer = setInterval(() => {
+    if (state.evIdx >= layout.events.length - 1) return setPlaying(false);
+    gotoEvent(state.evIdx + 1);
+  }, state.speed);
+}
+$("play").onclick = () => setPlaying(!state.playing);
+$("speed").onchange = e => {
+  state.speed = parseInt(e.target.value, 10) || 400;
+  if (state.playing) setPlaying(true);   // restart the timer at the new rate
+};
+
+/* zoom buttons */
+$("zin").onclick = () => zoom(0.65);
+$("zout").onclick = () => zoom(1.55);
+$("fitall").onclick = () => { state.f0 = F_MIN; state.f1 = F_MAX; state.focusLin = null; $("fitsel").disabled = true; renderAll(); };
+$("fitsel").onclick = () => {
+  const lin = linById.get(state.focusLin); if (!lin) return;
+  state.f0 = lin.f0; state.f1 = Math.max(lin.f1, lin.f0 + 4); clampWindow(); renderAll();
+};
+
+/* filters */
+document.querySelectorAll("[data-cls]").forEach(b => b.onclick = () => {
+  const c = b.dataset.cls, on = b.getAttribute("aria-pressed") === "true";
+  if (on && state.classes.size === 1) return;
+  b.setAttribute("aria-pressed", String(!on));
+  if (on) state.classes.delete(c); else state.classes.add(c);
+  rebuild();
+});
+document.querySelectorAll("[data-ev]").forEach(b => b.onclick = () => {
+  const c = b.dataset.ev, on = b.getAttribute("aria-pressed") === "true";
+  b.setAttribute("aria-pressed", String(!on));
+  if (on) state.types.delete(c); else state.types.add(c);
+  rebuild();
+});
+$("pickmode").onchange = e => {
+  state.pickmode = e.target.value;
+  $("picktop").hidden = state.pickmode !== "top";
+  $("pickclass").hidden = state.pickmode !== "class";
+  $("pickone").hidden = state.pickmode !== "one";
+  rebuild({keepWindow: false});
+};
+$("picktop").onchange = e => { state.topN = parseInt(e.target.value, 10); rebuild(); };
+$("pickclass").onchange = e => { state.pickClass = e.target.value; rebuild({keepWindow: false}); };
+$("pickone").onchange = e => { state.oneLin = e.target.value; state.focusLin = null; rebuild({keepWindow: false}); };
+$("minsize").onchange = e => { state.minSize = Math.max(2, parseInt(e.target.value, 10) || 2); rebuild(); };
+
+/* theme */
+$("theme").onclick = () => {
+  const now = document.documentElement.getAttribute("data-theme");
+  const dark = now ? now === "dark"
+    : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
+  renderAll(); renderLog(false);
+};
+
+/* keys */
+window.addEventListener("keydown", ev => {
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName)) return;
+  if (ev.key === "ArrowRight") { ev.preventDefault(); gotoEvent(state.evIdx + 1); }
+  else if (ev.key === "ArrowLeft") { ev.preventDefault(); gotoEvent(state.evIdx - 1); }
+  else if (ev.key === " ") { ev.preventDefault(); setPlaying(!state.playing); }
+  else if (ev.key === "Escape") { state.focusLin = null; state.selSeg = null; $("fitsel").disabled = true; renderAll(); }
+});
+
+let rAF = null;
+window.addEventListener("resize", () => {
+  if (rAF) cancelAnimationFrame(rAF);
+  rAF = requestAnimationFrame(() => { measure(); renderAll(); renderLog(false); });
+});
+
+/* ------------------------------------------------------------------ *
+ * Boot
+ * ------------------------------------------------------------------ */
+(function init() {
+  const m = DATA.meta;
+  $("meta").innerHTML =
+    `<span><b>${fmt(m.n_frames)}</b> frames</span>` +
+    `<span><b>${fmt(m.n_lineages)}</b> lineages</span>` +
+    `<span><b>${fmt(m.n_segments)}</b> segments</span>` +
+    `<span><b>${fmt(m.n_events)}</b> events</span>` +
+    `<span>cache <b>${esc(m.cache)}</b></span>` +
+    `<span>inter_thresh <b>${m.params.inter_thresh}</b> · cluster_min_size <b>${m.params.cluster_min_size}</b></span>`;
+  for (const t of EV_TYPES) {
+    const el = $("c-" + t);
+    if (el) el.textContent = fmt(m.event_type_counts[t] || 0);
+  }
+  const sel = $("pickclass");
+  sel.innerHTML = Object.keys(m.class_counts)
+    .map(c => `<option value="${esc(c)}">${esc(c)} (${fmt(m.class_counts[c])})</option>`).join("");
+  $("linlist").innerHTML = DATA.lineages.slice(0, 400)
+    .map(l => `<option value="${esc(l.id)}">${l.max}-mer, ${l.nseg} segments</option>`).join("");
+  $("picktop").hidden = false; $("pickclass").hidden = true; $("pickone").hidden = true;
+
+  measure();
+  buildLayout();
+  if (layout.events.length) { state.evIdx = 0; state.selEv = layout.events[0].id; state.frame = layout.events[0].f; showEvent(state.selEv); }
+  renderAll(); renderLog(true);
+})();
+
+/* Handle used by the headless smoke test in docs/lineage_timeline/. */
+globalThis.__timeline = {
+  get DATA() { return DATA; },
+  get layout() { return layout; },
+  get state() { return state; },
+  get plotW() { return plotW; },
+  gotoEvent, zoom, setFocus, toggleFocus, rebuild, showSegment, showEvent,
+  sizeStory, balanceTag, balanceWords, provenanceWords, membersPanel, segMembersPanel, barH, xOf,
+  get segM0() { return segM0; }, get segM1() { return segM1; },
+};
+</script>
+</body>
+</html>

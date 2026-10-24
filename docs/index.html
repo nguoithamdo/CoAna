@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoAna</title>
+<meta name="description" content="CoAna: which oligomers mattered in a protein aggregation simulation, and why. By Nguyen Truong Co, Truong Co Group.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab notebook page. One wide measurement figure up top, then
+   narrow reading columns; numbers set in mono like an instrument readout.
+   Accent = thioflavin-T emission (~485 nm cyan), the dye that reports amyloid. */
+:root {
+  --paper: #f6f8f9;
+  --ink: #12202b;
+  --muted: #566672;
+  --rule: #d5dde2;
+  --tht: #0b8a8f;        /* aSyn alone */
+  --ab40: #c26a12;       /* with Abeta40 */
+  --ab42: #7a4fb0;       /* with Abeta42 */
+  --panel: #ffffff;
+  --code: #e9eef1;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --s-1: .8125rem; --s0: 1.0625rem; --s1: 1.3rem; --s2: 1.75rem; --s3: 2.6rem; --s4: clamp(2.6rem, 6vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0f171d; --ink: #e4ecf0; --muted: #94a5b0; --rule: #26343d;
+  --tht: #3cc6c9; --ab40: #f0a254; --ab42: #b49ae6; --panel: #15212a; --code: #1b2a34;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0f171d; --ink: #e4ecf0; --muted: #94a5b0; --rule: #26343d;
+  --tht: #3cc6c9; --ab40: #f0a254; --ab42: #b49ae6; --panel: #15212a; --code: #1b2a34;
+  color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--ink); font: 400 var(--s0)/1.6 var(--f-body);
+  padding-inline: 20px; padding-block: 0 48px }
+.wrap { max-width: 1080px; margin-inline: auto }
+.read { max-width: 66ch }
+a { color: inherit; text-decoration-color: var(--tht); text-underline-offset: 3px }
+a:hover { color: var(--tht) }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--tht); outline-offset: 3px; border-radius: 2px }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.08; text-wrap: balance; margin: 0 }
+h2 { font-size: var(--s3); font-weight: 700; letter-spacing: -.02em }
+h3 { font-size: var(--s1); font-weight: 700 }
+p { margin: 0 }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums }
+.label { font: 600 var(--s-1)/1.2 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+
+header.top { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: baseline; justify-content: space-between;
+  padding-block: 22px; border-bottom: 1px solid var(--rule) }
+.brand { font: 800 1.5rem/1 var(--f-display); letter-spacing: -.02em; text-decoration: none }
+.brand span { color: var(--muted); font-weight: 500; font-size: var(--s-1); letter-spacing: .02em; margin-left: 10px; font-family: var(--f-mono) }
+nav { display: flex; flex-wrap: wrap; gap: 6px 20px; font: 500 var(--s-1)/1 var(--f-mono) }
+nav a { text-decoration: none; color: var(--muted) }
+
+section { padding-block: 64px 8px; display: grid; gap: 28px }
+
+/* hero */
+.hero { padding-block: 56px 8px; display: grid; gap: 22px }
+.hero h1 { font-size: var(--s4); font-weight: 800; letter-spacing: -.035em; max-width: 15ch }
+.hero .lede { font-size: var(--s1); line-height: 1.5; color: var(--muted); max-width: 52ch }
+.hero .lede b { color: var(--ink); font-weight: 600 }
+
+figure { margin: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 20px 20px 14px }
+.chart-wrap { overflow-x: auto }
+svg.chart { width: 100%; min-width: 560px; height: auto; display: block }
+svg.chart text { font: 12px var(--f-mono); fill: var(--muted) }
+svg.chart .grid { stroke: var(--rule); stroke-width: 1 }
+svg.chart .axis { stroke: var(--muted); stroke-width: 1 }
+svg.chart .line { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round }
+svg.chart .end { stroke: var(--panel); stroke-width: 2 }
+svg.chart .tag { font: 600 13px var(--f-mono) }
+figcaption { margin-top: 10px; font-size: var(--s-1); color: var(--muted); line-height: 1.5; max-width: 90ch }
+@media (prefers-reduced-motion: no-preference) {
+  svg.chart .line { stroke-dasharray: var(--len); stroke-dashoffset: 0; animation: draw 1.6s ease-out both }
+  @keyframes draw { from { stroke-dashoffset: var(--len) } to { stroke-dashoffset: 0 } }
+}
+
+/* three runs */
+.runs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px }
+.run { border-top: 4px solid var(--c); padding-top: 16px; display: grid; gap: 12px; align-content: start; min-width: 0 }
+.run .sys { font: 600 var(--s-1)/1.3 var(--f-mono); color: var(--c) }
+.run p { font-size: .98rem }
+dl.read-out { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: var(--s-1) }
+dl.read-out dt { font-family: var(--f-mono); color: var(--muted) }
+dl.read-out dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; font-weight: 600 }
+.bar { display: flex; height: 10px; border-radius: 2px; overflow: hidden; background: var(--code) }
+.bar i { display: block; height: 100% }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font: var(--s-1)/1.4 var(--f-mono); color: var(--muted) }
+.legend b { display: inline-block; width: 9px; height: 9px; border-radius: 1px; margin-right: 5px; vertical-align: 0 }
+.note { border-left: 3px solid var(--rule); padding-left: 14px; color: var(--muted); font-size: .98rem }
+
+/* labels table */
+.terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px 28px }
+.terms div { display: grid; gap: 4px; min-width: 0 }
+.terms dt { font: 700 var(--s0)/1.2 var(--f-display) }
+.terms dd { margin: 0; color: var(--muted); font-size: .98rem }
+
+/* proof */
+.proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0; border-top: 1px solid var(--rule) }
+.proof > div { padding: 18px 18px 18px 0; border-bottom: 1px solid var(--rule); display: grid; gap: 6px; align-content: start; min-width: 0 }
+.proof .big { font: 600 var(--s2)/1 var(--f-mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em }
+.proof p { font-size: .96rem; color: var(--muted) }
+
+/* code */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px }
+.step { display: grid; gap: 8px; min-width: 0; align-content: start }
+pre { margin: 0; background: var(--code); border-radius: 4px; padding: 14px 16px; overflow-x: auto;
+  font: 13px/1.6 var(--f-mono) }
+.copy { justify-self: start; font: 600 12px var(--f-mono); background: transparent; color: var(--muted);
+  border: 1px solid var(--rule); border-radius: 3px; padding: 4px 10px; cursor: pointer }
+.copy:hover { color: var(--ink); border-color: var(--muted) }
+.pending { font-size: var(--s-1); color: var(--muted) }
+
+/* about */
+.about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 40px }
+@media (max-width: 760px) { .about { grid-template-columns: 1fr } }
+.about .who { display: grid; gap: 14px; align-content: start }
+.about .who h3 { font-size: var(--s2) }
+.links { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 500 var(--s-1)/1.4 var(--f-mono) }
+ol.pubs { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--rule) }
+ol.pubs li { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 12px; padding-block: 10px; border-bottom: 1px solid var(--rule); font-size: .95rem; line-height: 1.45 }
+ol.pubs .y { font: 600 var(--s-1)/1.6 var(--f-mono); color: var(--muted) }
+ol.pubs i { color: var(--muted) }
+
+footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 8px 24px;
+  justify-content: space-between; font: var(--s-1)/1.5 var(--f-mono); color: var(--muted) }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#top">CoAna<span>Truong Co Group</span></a>
+    <nav aria-label="Sections">
+      <a href="#runs">Three runs</a>
+      <a href="#trust">Why trust it</a>
+      <a href="#start">Get started</a>
+      <a href="#author">Author</a>
+      <a href="https://github.com/nguoithamdo/CoAna">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero" id="top">
+    <p class="label">Oligomer analysis for molecular dynamics</p>
+    <h1>Which oligomers mattered, and why.</h1>
+    <p class="lede">An aggregation trajectory holds thousands of short-lived clusters. CoAna follows every chain through every frame and tells you <b>which assemblies went on to grow</b>, <b>which were dead ends</b>, and whether a second protein <b>joined the aggregate or only helped it start</b>.</p>
+
+    <figure>
+      <div class="chart-wrap">
+        <svg class="chart" id="chart" viewBox="0 0 960 360" role="img" aria-labelledby="chart-title">
+          <title id="chart-title">Largest assembly in chains against simulated time, three Martini 3 runs of 5 microseconds each</title>
+        </svg>
+      </div>
+      <figcaption>Largest assembly over 5&nbsp;µs in three Martini&nbsp;3 runs of 50 α-synuclein chains (295 beads each), drawn from CoAna's contact caches; contact = any two beads within 6.5&nbsp;Å under periodic boundaries; 50-ns averages. Same protein, three outcomes.</figcaption>
+    </figure>
+  </div>
+
+  <section id="runs" aria-labelledby="runs-h">
+    <div class="read" style="display:grid;gap:12px">
+      <p class="label">Demo data</p>
+      <h2 id="runs-h">One protein, three stories</h2>
+      <p>The bulk curve says "it aggregated" or "it didn't". CoAna's lineage layer says how. These are the demo runs shipped with CoAna, produced with one command each.</p>
+    </div>
+
+    <div class="runs">
+      <article class="run" style="--c: var(--tht)">
+        <p class="sys">α-syn ×50, water</p>
+        <h3>A single assembly takes over</h3>
+        <p>Growth comes in steps: plateaus at 15 and 20 chains, then a jump to 42 just before 3.5&nbsp;µs. Of 132 cluster lineages, 50 are on-pathway: they reach the target size.</p>
+        <dl class="read-out">
+          <dt>final largest</dt><dd>43 / 50 chains</dd>
+          <dt>lineages</dt><dd>132</dd>
+          <dt>on-pathway</dt><dd>50</dd>
+          <dt>off-pathway</dt><dd>35</dd>
+        </dl>
+      </article>
+
+      <article class="run" style="--c: var(--ab40)">
+        <p class="sys">α-syn ×50 + Aβ40 ×10, PEG crowder</p>
+        <h3>Aβ40 mostly watches</h3>
+        <p>The 10 Aβ40 chains make 56 visits to α-syn assemblies. Most are brief encounters. Two visits end inside the committed assembly; in two others the guest was present at commitment and then left.</p>
+        <div class="bar" role="img" aria-label="56 visits: 2 incorporated, 2 catalytic, 4 promoting, 12 passenger, 36 bystander">
+          <i style="width:3.57%;background:var(--ab40)"></i><i style="width:3.57%;background:var(--ab42)"></i><i style="width:7.14%;background:var(--tht)"></i><i style="width:21.43%;background:var(--muted)"></i><i style="width:64.29%;background:var(--rule)"></i>
+        </div>
+        <div class="legend"><span><b style="background:var(--ab40)"></b>incorporated 2</span><span><b style="background:var(--ab42)"></b>catalytic 2</span><span><b style="background:var(--tht)"></b>promoting 4</span><span><b style="background:var(--muted)"></b>passenger 12</span><span><b style="background:var(--rule)"></b>bystander 36</span></div>
+      </article>
+
+      <article class="run" style="--c: var(--ab42)">
+        <p class="sys">α-syn ×50 + Aβ42 ×10, PEG crowder</p>
+        <h3>Arrested: nothing commits</h3>
+        <p>Small mixed clusters form and break for 5&nbsp;µs. 136 of 247 lineages contain both proteins, yet none grows past 6 chains. Of 219 Aβ42 visits, 203 are bystanders and 16 promote growth that never commits.</p>
+        <dl class="read-out">
+          <dt>final largest</dt><dd>6 chains</dd>
+          <dt>lineages</dt><dd>247</dd>
+          <dt>mixed lineages</dt><dd>136</dd>
+          <dt>off-pathway</dt><dd>243</dd>
+        </dl>
+      </article>
+    </div>
+
+    <p class="note read">A label on one visit in one run is a description, not evidence of catalysis. CoAna records the data for the real test: compare how often the guest's own assembly commits after a visit, for real guests against randomly chosen host chains treated as pseudo-guests, across replicates.</p>
+
+    <dl class="terms">
+      <div><dt>Incorporated</dt><dd>present when the assembly commits to growing, and still there at the end. A co-aggregate.</dd></div>
+      <div><dt>Catalytic</dt><dd>present before and at commitment, then leaves; the assembly carries on without it.</dd></div>
+      <div><dt>Passenger</dt><dd>joins an assembly that had already committed. Recruited by the aggregate.</dd></div>
+      <div><dt>Bystander</dt><dd>touches assemblies briefly; nothing grows, nothing commits.</dd></div>
+    </dl>
+  </section>
+
+  <section id="trust" aria-labelledby="trust-h">
+    <div class="read" style="display:grid;gap:12px">
+      <p class="label">Correctness</p>
+      <h2 id="trust-h">Numbers you can put in a paper</h2>
+      <p>An analysis tool's errors end up in figures. CoAna is built to be checked.</p>
+    </div>
+    <div class="proof">
+      <div><span class="big">bit-identical</span><p>Re-running 3.6.0 on a published campaign trajectory reproduces its 5001-frame contact cache exactly: every array and all metadata.</p></div>
+      <div><span class="big">16 / 16</span><p>defects found in an independent audit are fixed, and each fix has a regression test shown to fail on the code before it.</p></div>
+      <div><span class="big">10.3 %</span><p>of chain–chain contacts are lost when a trajectory has no periodic box. CoAna now refuses to run without one unless you say the system is not periodic.</p></div>
+      <div><span class="big">259 tests</span><p>run on Linux and Windows, with and without MDAnalysis. CoAna itself needs only NumPy and SciPy and reads XTC, TRR, GRO and PDB directly.</p></div>
+    </div>
+  </section>
+
+  <section id="start" aria-labelledby="start-h">
+    <div class="read" style="display:grid;gap:12px">
+      <p class="label">Two stages</p>
+      <h2 id="start-h">From trajectory to mechanism</h2>
+      <p>Stage A reads the trajectory once and writes a compact contact cache: 6&nbsp;MB for 5&nbsp;µs of 60 chains, about 5 minutes on a desktop. Stage B answers questions from the cache in seconds to a minute, as often as you like.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <p class="label">Install</p>
+        <pre id="c1">pip install coana</pre>
+        <button class="copy" type="button" data-for="c1">Copy</button>
+      </div>
+      <div class="step">
+        <p class="label">Stage A · contacts</p>
+        <pre id="c2">coana precompute \
+  --traj prod.xtc --topology prod.gro \
+  --species aSyn:295x50,Ab40:92x10 \
+  --contact-mode min_atom --cutoff 6.5 \
+  --n-jobs 8 -o run.npz</pre>
+        <button class="copy" type="button" data-for="c2">Copy</button>
+      </div>
+      <div class="step">
+        <p class="label">Stage B · answers</p>
+        <pre id="c3">coana lineage   run.npz -o lineage.csv
+coana mechanism run.npz -o mechanism.csv
+coana report    run.npz -o report.html</pre>
+        <button class="copy" type="button" data-for="c3">Copy</button>
+      </div>
+    </div>
+    <p class="pending">MIT licensed. Source, issues and changelog on <a href="https://github.com/nguoithamdo/CoAna">GitHub</a>.</p>
+  </section>
+
+  <section id="author" aria-labelledby="author-h">
+    <div class="about">
+      <div class="who">
+        <p class="label">Author</p>
+        <h3 id="author-h">Nguyen Truong Co</h3>
+        <p>Truong Co Group. Since 2010 his work has asked what controls how proteins aggregate: the size of the critical nucleus, the role of crowders, surfaces and preformed templates, the kinetics and stability of fibrils. He has built lattice, Monte Carlo and coarse-grained models to answer it. CoAna is the analysis tool that grew out of that work.</p>
+        <div class="links">
+          <a href="https://orcid.org/0000-0001-5642-3641">ORCID 0000-0001-5642-3641</a>
+          <a href="https://scholar.google.com/citations?user=0ttB9NsAAAAJ&amp;hl=en">Google Scholar</a>
+        </div>
+      </div>
+      <div style="display:grid;gap:12px;min-width:0">
+        <p class="label">Selected work on protein aggregation</p>
+        <ol class="pubs">
+          <li><span class="y">2025</span><span><a href="https://doi.org/10.1016/j.jmb.2025.168968">UNRES web server: extensions to nucleic acids, prediction of peptide aggregation, and new types of restrained simulations</a> <i>J. Mol. Biol.</i></span></li>
+          <li><span class="y">2025</span><span><a href="https://doi.org/10.1021/acs.jctc.4c01504">Implementation of time-averaged restraints with the UNRES coarse-grained model of polypeptide chains</a> <i>J. Chem. Theory Comput.</i></span></li>
+          <li><span class="y">2022</span><span><a href="https://doi.org/10.1007/978-1-0716-1546-1_4">Computational models for the study of protein aggregation</a> <i>Methods Mol. Biol.</i></span></li>
+          <li><span class="y">2021</span><span><a href="https://doi.org/10.3390/biom11040596">Effect of surface roughness on aggregation of polypeptide chains: a Monte Carlo study</a> <i>Biomolecules</i></span></li>
+          <li><span class="y">2020</span><span><a href="https://doi.org/10.1063/1.5144305">Heat-induced degradation of fibrils: exponential vs logistic kinetics</a> <i>J. Chem. Phys.</i></span></li>
+          <li><span class="y">2019</span><span><a href="https://doi.org/10.1063/1.5096379">Aggregation rate of amyloid beta peptide is controlled by beta-content in monomeric state</a> <i>J. Chem. Phys.</i></span></li>
+          <li><span class="y">2018</span><span><a href="https://doi.org/10.1063/1.5028575">Kinetics and mechanical stability of the fibril state control fibril formation time of polypeptide chains</a> <i>J. Chem. Phys.</i></span></li>
+          <li><span class="y">2015</span><span><a href="https://doi.org/10.1063/1.4917073">Preformed template fluctuations promote fibril formation: insights from lattice and all-atom models</a> <i>J. Chem. Phys.</i></span></li>
+          <li><span class="y">2013</span><span><a href="https://doi.org/10.1063/1.4804299">Dual effect of crowders on fibrillation kinetics of polypeptide chains revealed by lattice models</a> <i>J. Chem. Phys.</i></span></li>
+          <li><span class="y">2012</span><span><a href="https://doi.org/10.1063/1.4749257">New method for determining size of critical nucleus of fibril formation of polypeptide chains</a> <i>J. Chem. Phys.</i></span></li>
+          <li><span class="y">2010</span><span><a href="https://doi.org/10.1103/PhysRevLett.105.218101">Factors governing fibrillogenesis of polypeptide chains revealed by lattice models</a> <i>Phys. Rev. Lett.</i></span></li>
+        </ol>
+        <p class="pending">Full list of 21 works on <a href="https://orcid.org/0000-0001-5642-3641">ORCID</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Nguyen Truong Co · Truong Co Group</span>
+    <span>CoAna is MIT licensed</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  // Largest assembly (chains), 50-ns means over 5001 frames at 1 ns per frame.
+  var runs = [
+    { name: "α-syn alone", color: "--tht", y: [5,6,6,6,6,6,6,6,7,7,10,11,12,13,14,14,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,18,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,21,21,21,21,21,28,31,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,43,43,43,43,43] },
+    { name: "+ Aβ40, PEG", color: "--ab40", y: [4,6,7,14,16,15,18,19,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,21,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23] },
+    { name: "+ Aβ42, PEG", color: "--ab42", y: [2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6] }
+  ];
+  var svg = document.getElementById("chart"), NS = "http://www.w3.org/2000/svg";
+  var W = 960, H = 360, L = 56, R = 150, T = 18, B = 44;
+  var x = function (us) { return L + us / 5 * (W - L - R); };
+  var y = function (n) { return T + (1 - n / 50) * (H - T - B); };
+  function el(tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    svg.appendChild(e); return e;
+  }
+  [0, 10, 20, 30, 40, 50].forEach(function (n) {
+    el("line", { x1: L, x2: W - R, y1: y(n), y2: y(n), "class": "grid" });
+    el("text", { x: L - 10, y: y(n) + 4, "text-anchor": "end" }, n);
+  });
+  [0, 1, 2, 3, 4, 5].forEach(function (us) {
+    el("line", { x1: x(us), x2: x(us), y1: H - B, y2: H - B + 5, "class": "axis" });
+    el("text", { x: x(us), y: H - B + 20, "text-anchor": "middle" }, us);
+  });
+  el("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, "class": "axis" });
+  el("text", { x: (L + W - R) / 2, y: H - 6, "text-anchor": "middle" }, "time (µs)");
+  el("text", { x: 14, y: T + (H - T - B) / 2, "text-anchor": "middle", transform: "rotate(-90 14 " + (T + (H - T - B) / 2) + ")" }, "largest assembly (chains)");
+  var labelY = [];
+  runs.forEach(function (r) {
+    var n = r.y.length, pts = r.y.map(function (v, i) { return x(i / (n - 1) * 5).toFixed(1) + "," + y(v).toFixed(1); });
+    var line = el("polyline", { points: pts.join(" "), "class": "line", style: "stroke: var(" + r.color + ")" });
+    try { line.style.setProperty("--len", Math.ceil(line.getTotalLength())); } catch (e) {}
+    var last = r.y[n - 1];
+    el("circle", { cx: x(5), cy: y(last), r: 5, "class": "end", style: "fill: var(" + r.color + ")" });
+    var ly = y(last) + 4;
+    labelY.forEach(function (u) { if (Math.abs(u - ly) < 18) ly = u + 18; });
+    labelY.push(ly);
+    el("text", { x: x(5) + 12, y: ly, "class": "tag", style: "fill: var(" + r.color + ")" }, last + " · " + r.name);
+  });
+
+  document.querySelectorAll(".copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var pre = document.getElementById(b.dataset.for), txt = pre.textContent;
+      function done(msg) { b.textContent = msg; setTimeout(function () { b.textContent = "Copy"; }, 1600); }
+      function select() { var r = document.createRange(); r.selectNodeContents(pre); var s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected"); }
+      try { navigator.clipboard.writeText(txt).then(function () { done("Copied"); }, select); } catch (e) { select(); }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

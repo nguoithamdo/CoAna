@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use CoAna, please cite it as below."
+title: "CoAna: lineage-aware analysis of protein aggregation in molecular dynamics"
+type: software
+authors:
+  - family-names: "Nguyen"
+    given-names: "Truong Co"
+    orcid: "https://orcid.org/0000-0001-5642-3641"
+    affiliation: "Truong Co Group"
+version: 3.6.0
+date-released: 2026-10-24
+license: MIT
+repository-code: "https://github.com/nguoithamdo/CoAna"
+url: "https://nguoithamdo.github.io/CoAna/"
+keywords:
+  - molecular dynamics
+  - protein aggregation
+  - oligomers
+  - Martini
+  - amyloid

@@ -1,0 +1,47 @@
+# Normalise line endings in the repository to LF, and check out whatever is
+# native to the platform. Without this, a Windows development machine commits
+# CRLF, the Linux CI leg sees a different byte stream, and every file touched on
+# the other OS shows up as wholly rewritten in the diff.
+* text=auto
+
+# Explicit, so these never depend on Git's content heuristics.
+*.py    text diff=python
+*.pyi   text diff=python
+*.md    text
+*.txt   text
+*.toml  text
+*.cfg   text
+*.yml   text
+*.yaml  text
+*.json  text
+*.html  text diff=html
+*.css   text
+*.js    text
+
+# Jupyter notebooks are JSON, but a line-level diff of one is unreadable and
+# merging it by hand corrupts the document. Treat them as binary for diffing and
+# resolve conflicts by choosing a side.
+*.ipynb -diff merge=binary
+
+# Molecular structure and trajectory formats are text, but they are inputs
+# rather than source and are mostly gitignored; keep them out of diffs.
+*.pdb   -diff
+*.gro   -diff
+
+# Binary
+*.npz   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.pdf   binary
+*.xlsx  binary
+*.xtc   binary
+*.trr   binary
+
+# Audit evidence must survive a checkout byte-for-byte. With core.autocrlf
+# on, git would rewrite these to CRLF and every SHA256SUMS line would fail --
+# tested: 13 of 13 failed on a fresh clone before this rule.
+audit/prefix_fixtures/** -text
+audit/history/** -text
+audit/baselines/** -text

@@ -1,0 +1,87 @@
+# ---------------------------------------------------------------------------
+# Trajectories and Stage A caches
+# ---------------------------------------------------------------------------
+# Input trajectories are large (the reference run is 1.6 GB) and are inputs, not
+# source. Caches and their sidecars are reproducible from a trajectory with
+# `coana precompute`, so they are build artefacts. Keep both out, and record how
+# a cache was made in the commit message or a script instead.
+*.pdb
+*.gro
+*.xtc
+*.trr
+*.npz
+*.coanapure-index.npz
+*_offsets.npz
+
+# Small fixtures are the exception: a test needs its inputs in the repo.
+!tests/**/*.pdb
+!tests/**/*.gro
+!tests/**/*.npz
+
+# ---------------------------------------------------------------------------
+# Generated reports and figures
+# ---------------------------------------------------------------------------
+# Every one of these is emitted by `coana report`, `coana timeline`, the
+# acceptance notebook or the docs builders. Regenerating them is one command;
+# versioning multi-megabyte HTML makes every diff unreadable.
+/GUIDE.html
+/CoAnaPure_Analysis_Report.html
+/LINEAGE_TIMELINE.html
+/REPORT_*.html
+/interactive_*.html
+notebooks/out_acceptance/
+docs/lineage_timeline/out/
+docs/fragment_tracking_eval/out/
+
+# Markdown reports are small and reviewable, so they stay tracked:
+#   REPORT_*.md, CLEAN_RUN.md, GUIDE.md, README.md
+
+# ---------------------------------------------------------------------------
+# Notebook noise
+# ---------------------------------------------------------------------------
+.ipynb_checkpoints/
+# Executed notebooks carry their output cells, which is why two of them are
+# ~7 MB. Strip outputs before committing (nbstripout, or Kernel > Restart and
+# Clear Output) rather than ignoring the notebooks themselves.
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# ---------------------------------------------------------------------------
+# Editors and OS
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------------
+# HPC / batch leftovers
+# ---------------------------------------------------------------------------
+slurm-*.out
+*.sbatch.log
+core.*

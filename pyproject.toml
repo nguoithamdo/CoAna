@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coana"
+version = "3.6.0"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Nguyen Truong Co" }]
+description = "MD trajectory oligomer contact analysis and pathway monitoring"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  # scipy powers the CoAnaPure neighbour search (cKDTree). Without it the pure
+  # cell lists still give identical results but are several times slower, so it
+  # is a required dependency (a RuntimeWarning fires if it is missing anyway).
+  "scipy",
+  "pandas",
+  "matplotlib",
+  "joblib",
+  "openpyxl",
+  "ipywidgets",
+  "plotly",
+  "networkx",
+]
+
+# MDAnalysis is optional: the CoAnaPure engine (oligomer_analysis.coanapure)
+# builds Stage A caches with NumPy/SciPy only, reading PDB, GRO, TRR and XTC
+# trajectories directly. Install the "mdanalysis" extra only to run the original
+# precompute engine, read other formats, or run the benchmark that
+# cross-validates the two engines.
+[project.urls]
+Homepage = "https://nguoithamdo.github.io/CoAna/"
+Source = "https://github.com/nguoithamdo/CoAna"
+Changelog = "https://github.com/nguoithamdo/CoAna/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+mdanalysis = ["MDAnalysis"]
+# Kept for backward compatibility; scipy is now a core dependency.
+fast = ["scipy"]
+dev = ["pytest"]
+
+# The CLI: Stage A precomputation, cache inspection, HTML reporting, and the
+# CoAnaPure-vs-MDAnalysis benchmark, all runnable from batch scripts.
+[project.scripts]
+coana = "oligomer_analysis.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["oligomer_analysis*", "coana"]
+
+# The lineage-timeline page template is inlined at render time, so it must
+# travel with an installed wheel, not just with a source checkout.
+[tool.setuptools.package-data]
+oligomer_analysis = ["templates/*.html"]
