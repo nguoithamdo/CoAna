@@ -21,6 +21,19 @@ it was inside: incorporated, catalytic, passenger, promoting, or bystander.
 - **Tested** — every defect fixed since 3.4 has a regression test proven to fail
   without its fix.
 
+**A short history.** CoAna (*Coupled Analysis Framework for Quantifying
+Biomolecular Assembly and Condensation Dynamics*) has been developed by
+Dr. Nguyen Truong Co since January 2024. It began as an analysis notebook for
+his own coarse-grained simulations of protein aggregation, and by December
+2025 it was a working research tool that two theses, one on α-synuclein phase
+separation and one on IAPP aggregation in type 2 diabetes, used for their
+analysis. In 2026 it became a package: a two-stage design with a reusable
+contact cache (spring), split/merge-aware lineages and fates (early summer),
+its own trajectory reader free of MDAnalysis (August), mixed systems and
+guest mechanisms (3.4, September), and a full correctness audit with an MIT
+license and the name `coana` (3.6, October). The full story is in
+[HISTORY.md](HISTORY.md).
+
 ## What it looks like
 
 Three 5 µs Martini 3 simulations of 50 α-synuclein chains, analysed with CoAna.
