@@ -452,7 +452,8 @@ plot_small_world_range(cache, finished, label, 0, 23, inter_thresh=1, panel9_nod
 
 ## Author
 
-CoAna is developed by **Nguyen Truong Co** (Truong Co Group).
+CoAna is developed by **Dr. Nguyen Truong Co** (Truong Co Group) since January 2024;
+see [HISTORY.md](HISTORY.md) for how it grew.
 [ORCID 0000-0001-5642-3641](https://orcid.org/0000-0001-5642-3641) ·
 [Google Scholar](https://scholar.google.com/citations?user=0ttB9NsAAAAJ)
 
