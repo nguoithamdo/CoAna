@@ -8,6 +8,9 @@ small oligomers actually lead to the final aggregate? It grew into a tested,
 documented Python package that reads trajectories directly and answers that
 question for mixed, crowded systems as well.
 
+CoAna is designed and written by Dr. Co alone. Others have used it in their
+research, as described below, but its development has been his throughout.
+
 This page records how it got there. Dates before September 2026 come from the
 surviving source files and notebooks and from theses that used CoAna; from
 3.4.0 on they come from the changelog and version control.
@@ -34,9 +37,9 @@ Two ideas from this period still shape CoAna today:
 By December 2025 CoAna was a working research tool, built in Python on top of
 MDAnalysis, and its first applications were complete:
 
-- **First thesis built on CoAna (December 2025).** A master's thesis in
+- **First thesis to use CoAna (December 2025).** A master's thesis in
   theoretical physics on liquid–liquid phase separation of α-synuclein used
-  CoAna for its whole analysis: how box size and temperature (290–330 K) change
+  Dr. Co's CoAna for its whole analysis: how box size and temperature (290–330 K) change
   oligomerisation. CoAna supplied contact counts, oligomer numbers, sizes and
   structure, the lifetime of every oligomer, free-energy surfaces, contact
   maps, size-transition matrices and size-transition networks for single
@@ -67,10 +70,10 @@ in the packaged workflow notebooks **CoAna v1** and **CoAna v2**
 
 ## May–June 2026 · oligomer-analysis 3.x, and a second field
 
-**Second thesis built on CoAna (June 2026).** A pharmacy thesis on the
+**Second thesis to use CoAna (June 2026).** A pharmacy thesis on the
 pre-aggregation of islet amyloid polypeptide (IAPP), the peptide whose
 aggregation kills β-cells in type 2 diabetes, analysed a 128-monomer Martini 3
-system (5 µs at 300 K) with CoAna. Contacts were defined between residue
+system (5 µs at 300 K) with Dr. Co's CoAna. Contacts were defined between residue
 centres within 6.5 Å, an oligomer had to persist for at least 5 frames, and
 CoAna traced oligomer sizes, free and bound monomers, lifetimes, merging and
 splitting, free-energy surfaces and size-transition networks. The thesis
@@ -133,7 +136,7 @@ catalytic, passenger, promoting, or bystander.
   `import coana`; `import oligomer_analysis` still works), licensed under
   **MIT**, and hardened:
   - a trajectory without a periodic box is refused rather than analysed
-    silently (on a 128-chain run, missing the box loses 10 % of contacts);
+    silently, since contacts across the box faces would be lost;
   - PDB files written by GROMACS keep the box of their first frame;
   - a re-run reproduces a production contact cache **bit for bit**.
 
@@ -148,10 +151,10 @@ catalytic, passenger, promoting, or bystander.
 | Period | Version | Milestone |
 |---|---|---|
 | Jan 2024 | — | Development begins (analysis notebooks) |
-| Dec 2025 | — | First thesis built on CoAna (α-synuclein phase separation) |
+| Dec 2025 | — | First thesis to use CoAna (α-synuclein phase separation) |
 | Feb 2026 | Oligomer Tracker | Notebook refactored into a package |
 | Mar–Apr 2026 | CoAna v1, v2 | Two-stage design: contact cache + fast analysis |
-| May–Jun 2026 | 3.0 – 3.1.2 | Installable package; lineage and fate layer; second thesis (IAPP, type 2 diabetes) |
+| May–Jun 2026 | 3.0 – 3.1.2 | Installable package; lineage and fate layer; second thesis to use CoAna (IAPP, type 2 diabetes) |
 | Aug 2026 | 3.3.0, CoAnaPure 1.2 | Own trajectory engine; main-fragment tracking |
 | 3 Sep 2026 | 3.4.0 | Mixed systems; guest mechanism |
 | 6 / 9 Oct 2026 | 3.5.0 / 3.5.1 | Branch-local mechanism; review fixes |
