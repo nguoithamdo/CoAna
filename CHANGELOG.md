@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.6.1 — 2026-10-24
+
+Documentation only; the code is unchanged from 3.6.0.
+
+- README: the 3.6.0 page compared three runs simulated with different
+  force-field parameters (protein–water scaling 1.001 vs 1.010, different
+  crowder scaling and concentration) as if only the guest peptide differed.
+  That comparison is removed; each example figure now states its run's
+  parameters.
+- README opens with a one-line summary, a lineage-fate figure and a
+  three-command quick start; HISTORY.md added.
+
 ## 3.6.0 — 2026-10-23
 
 Merges a correctness audit of the 3.4.0 analysis layer (sixteen defects, each
