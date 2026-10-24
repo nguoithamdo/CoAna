@@ -147,7 +147,7 @@ from .timeline import (
     render_timeline_html,
 )
 
-__version__ = "3.6.1"
+__version__ = "3.6.2"
 
 
 def precompute_cache(*args, **kwargs):

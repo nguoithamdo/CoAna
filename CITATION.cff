@@ -7,7 +7,7 @@ authors:
     given-names: "Truong Co"
     orcid: "https://orcid.org/0000-0001-5642-3641"
     affiliation: "Truong Co Group"
-version: 3.6.1
+version: 3.6.2
 date-released: 2026-10-24
 license: MIT
 repository-code: "https://github.com/nguoithamdo/CoAna"

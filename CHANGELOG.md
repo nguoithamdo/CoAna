@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.6.2 — 2026-10-24
+
+First release archived on Zenodo, which gives CoAna a citable DOI. The code is
+unchanged from 3.6.1.
+
 ## 3.6.1 — 2026-10-24
 
 Documentation only; the code is unchanged from 3.6.0.
