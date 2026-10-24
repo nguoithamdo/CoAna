@@ -1,6 +1,6 @@
 # CoAna — which oligomers mattered, and why
 
-*Lineage-aware analysis of protein aggregation in molecular dynamics.*
+**Find the oligomers that build the aggregate, not just count them.**
 
 [![PyPI](https://img.shields.io/pypi/v/coana.svg)](https://pypi.org/project/coana/)
 [![tests](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml/badge.svg)](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml)
@@ -13,63 +13,59 @@ you which lineages went on to build the final aggregate, which were dead ends,
 and what a second species (a guest peptide, a crowder partner) actually did while
 it was inside: incorporated, catalytic, passenger, promoting, or bystander.
 
-- **Reads trajectories directly** — PDB, GRO, TRR and XTC, with NumPy/SciPy only.
+![Lineage fate plot of one α-synuclein run](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/lineage_fate.png)
+
+*Every lineage in one run, coloured by fate: green lineages build the final
+43-chain assembly, red ones are dead ends. 50 α-synuclein chains, Martini 3
+with protein–water scaling λ<sub>PW</sub> = 1.001, no crowder, ≈519 µM,
+5 µs (5001 frames).*
+
+Cluster-counting tools tell you *which* clusters exist. CoAna tells you
+*which ones mattered* and *what a guest did*.
+
+- **Reads trajectories directly**: XTC, TRR, GRO and PDB, with NumPy/SciPy only.
   MDAnalysis is optional.
-- **Periodic boundaries done right** — exact minimum-image contacts; a trajectory
-  without a box is refused rather than analysed silently.
-- **Reproducible** — a re-run reproduces a production contact cache bit for bit.
-- **Tested** — every defect fixed since 3.4 has a regression test proven to fail
-  without its fix.
-
-**A short history.** CoAna (*Coupled Analysis Framework for Quantifying
-Biomolecular Assembly and Condensation Dynamics*) has been developed by
-Dr. Nguyen Truong Co since January 2024. It began as an analysis notebook for
-his own coarse-grained simulations of protein aggregation, and by December
-2025 it was a working research tool that two theses, one on α-synuclein phase
-separation and one on IAPP aggregation in type 2 diabetes, used for their
-analysis. In 2026 it became a package: a two-stage design with a reusable
-contact cache (spring), split/merge-aware lineages and fates (early summer),
-its own trajectory reader free of MDAnalysis (August), mixed systems and
-guest mechanisms (3.4, September), and a full correctness audit with an MIT
-license and the name `coana` (3.6, October). The full story is in
-[HISTORY.md](HISTORY.md).
-
-## What it looks like
-
-Three 5 µs Martini 3 simulations of 50 α-synuclein chains, analysed with CoAna.
-Alone, α-syn grows step by step into one 43-chain assembly. With Aβ40 and PEG it
-stalls at 23. With Aβ42 nothing grows past 6.
-
-![Largest assembly over time in three runs](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/three_runs.png)
-
-When a second peptide visits a cluster, `coana mechanism` labels the visit by
-what happened to the assembly. Most visits are brief encounters (bystander).
-Aβ40 also joins assemblies that have already committed (passenger), is there
-while an assembly grows (promoting), is present when one commits and then
-leaves (catalytic), or stays in the product (incorporated). Aβ42 visits are
-bystanders, apart from 16 during which the assembly grew.
-
-![Guest roles for Aβ40 and Aβ42](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/guest_roles.png)
-
-Every lineage, followed through splits and merges and coloured by its fate:
-on-pathway lineages feed the final aggregate; off-pathway ones are dead ends.
-
-![Lineage fate plot, α-syn alone](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/lineage_fate.png)
-
-How many clusters of each size exist at each moment (α-syn + Aβ40):
-
-![Oligomer size occupancy over time](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/size_time_heatmap.png)
-
-All four figures come from `coana precompute`, `coana lineage`,
-`coana mechanism` and `coana report` on these runs.
+- **Exact periodic contacts**: minimum-image contacts across every box face.
+- **Bit-for-bit reproducible**: re-running Stage A reproduces a production
+  contact cache exactly; 255 tests run on Linux and Windows.
 
 ```bash
 pip install coana
+coana precompute --traj prod.xtc --topology prod.gro --species aSyn:295x50 -o run.npz
+coana lineage run.npz        # on-/off-pathway lineages and their fates
+coana report  run.npz -o report.html
 ```
 
-Then `import coana` in Python, or run the `coana` command. The package was
-called `oligomer-analysis` before 3.6.0; `import oligomer_analysis` still
-works and refers to the very same modules.
+## More of what CoAna shows
+
+**What did the guest do?** In a run with 10 Aβ40 chains among the 50
+α-synuclein chains, `coana mechanism` labels each of the 56 Aβ40 visits by what
+happened to the assembly it visited. Most are brief encounters (bystander).
+Some join an assembly that has already committed (passenger), are there while
+it grows (promoting), are present when it commits and then leave (catalytic),
+or stay in the product (incorporated).
+
+![Guest roles of Aβ40 in one run](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/guest_roles.png)
+
+**How many clusters of each size, at every moment** (same run):
+
+![Oligomer size occupancy over time](https://raw.githubusercontent.com/nguoithamdo/CoAna/main/docs/images/size_time_heatmap.png)
+
+*The Aβ40 run: λ<sub>PW</sub> = 1.010 for α-synuclein–water, PEG-10000
+crowder with PEG–PEG scaling λ<sub>CC</sub> = 0.50, 5 µs. Its parameters
+differ from the run above, so the two runs are examples of CoAna's output,
+not a comparison between conditions.*
+
+## About
+
+CoAna, the *Coupled Analysis Framework for Quantifying Biomolecular Assembly
+and Condensation Dynamics*, has been developed by Dr. Nguyen Truong Co since
+January 2024. It is already used in research on α-synuclein phase separation
+and on IAPP aggregation in type 2 diabetes. The full story is in
+[HISTORY.md](HISTORY.md).
+
+The package was called `oligomer-analysis` before 3.6.0;
+`import oligomer_analysis` still works and refers to the very same modules.
 
 ## Quick start (`coana` CLI + HTML report)
 
