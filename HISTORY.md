@@ -8,9 +8,6 @@ small oligomers actually lead to the final aggregate? It grew into a tested,
 documented Python package that reads trajectories directly and answers that
 question for mixed, crowded systems as well.
 
-CoAna is designed and written by Dr. Co alone. Others have used it in their
-research, as described below, but its development has been his throughout.
-
 This page records how it got there. Dates before September 2026 come from the
 surviving source files and notebooks and from theses that used CoAna; from
 3.4.0 on they come from the changelog and version control.

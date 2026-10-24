@@ -56,17 +56,6 @@ crowder with PEG–PEG scaling λ<sub>CC</sub> = 0.50, 5 µs. Its parameters
 differ from the run above, so the two runs are examples of CoAna's output,
 not a comparison between conditions.*
 
-## About
-
-CoAna, the *Coupled Analysis Framework for Quantifying Biomolecular Assembly
-and Condensation Dynamics*, has been developed by Dr. Nguyen Truong Co since
-January 2024. It is already used in research on α-synuclein phase separation
-and on IAPP aggregation in type 2 diabetes. The full story is in
-[HISTORY.md](HISTORY.md).
-
-The package was called `oligomer-analysis` before 3.6.0;
-`import oligomer_analysis` still works and refers to the very same modules.
-
 ## Quick start (`coana` CLI + HTML report)
 
 ```bash
