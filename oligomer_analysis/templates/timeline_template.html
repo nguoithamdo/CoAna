@@ -95,8 +95,9 @@ input[type=number]{width:72px}
 
 /* ---------- layout ---------- */
 .masthead,.toolbar,.foot{flex:none}
-.stage{display:grid;grid-template-columns:1fr 344px;gap:0;flex:1;min-height:460px}
-@media (max-width:1080px){.stage{grid-template-columns:1fr;flex:none}}
+.stage{display:grid;grid-template-columns:1fr 344px;grid-template-rows:minmax(0,1fr);gap:0;flex:1;min-height:460px}
+@media (min-width:1081px){.rail{overflow-y:auto}}
+@media (max-width:1080px){.stage{grid-template-columns:1fr;grid-template-rows:none;flex:none}}
 .plotwrap{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--line);background:var(--surface)}
 .axisbox{flex:none;border-bottom:1px solid var(--line);background:var(--surface)}
 .scroller{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;min-height:320px}
@@ -112,8 +113,9 @@ input[type=number]{width:72px}
 .railsec.grow{flex:1;min-height:0;display:flex;flex-direction:column;padding-bottom:0}
 .railhead{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--faint);margin:0 0 9px;display:flex;justify-content:space-between;gap:8px}
-.stepbar{display:flex;align-items:center;gap:5px;margin-bottom:9px}
-.stepbar button{padding:4px 8px;min-width:32px;text-align:center}
+.stepbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:9px}
+.stepbar button{padding:4px 8px;min-width:32px;text-align:center;white-space:nowrap;flex:none}
+#framebox{width:76px}
 .stepnow{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);line-height:1.45}
 .stepnow b{color:var(--ink);font-weight:500}
 .hint{font-size:11.5px;color:var(--faint);margin-top:8px;line-height:1.45}
@@ -382,6 +384,7 @@ let plotW = 800;
 const $ = id => document.getElementById(id);
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const INSPECT_HINT = $("inspector").innerHTML;
 const fmt = n => n.toLocaleString("en-US");
 
 /* ------------------------------------------------------------------ *
@@ -874,10 +877,18 @@ function renderStepNow() {
   const list = layout.events;
   const e = state.evIdx >= 0 ? list[state.evIdx] : null;
   $("framebox").value = Math.round(state.frame);
+  // Nothing to step through: grey the buttons out rather than leave a Play that does nothing.
+  for (const id of ["first", "prev", "play", "next", "last"]) $(id).disabled = !list.length;
+  // Lineages on screen but no events: usually off-pathway lineages, which most often
+  // form and dissolve in one piece, since a merge would join them to a larger lineage.
+  const none = layout.segs.length
+    ? "the lineages shown have no split or merge: each forms and dissolves in one piece, " +
+      "so there is nothing to step through. Turn on another class or more lineages to play events."
+    : "no events match the filters";
   $("stepnow").innerHTML = e
     ? `frame <b>${e.f}</b> · <span style="color:var(${EV_COLOR[e.type]})">${EV_GLYPH[e.type]} <b>${EV_NAME[e.type]}</b></span><br>` +
       `<span class="muted">${esc(sizeStory(e))} · ${esc(evLin.get(e.id) || "")}</span>`
-    : `<span class="muted">${list.length ? "press ▶ or → to walk the events in time order" : "no events match the filters"}</span>`;
+    : `<span class="muted">${list.length ? "press ▶ or → to walk the events in time order" : none}</span>`;
 }
 
 /* ------------------------------------------------------------------ *
@@ -919,7 +930,7 @@ function rebuild({keepWindow = true} = {}) {
   if (state.selEv) {
     const at = list.findIndex(e => e.id === state.selEv);
     state.evIdx = at;
-    if (at === -1) state.selEv = null;
+    if (at === -1) { state.selEv = null; $("inspector").innerHTML = INSPECT_HINT; }
   }
   if (state.evIdx === -1 && list.length) state.evIdx = 0;
   if (!list.length) state.evIdx = -1;
