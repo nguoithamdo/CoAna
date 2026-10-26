@@ -32,9 +32,19 @@ Two ideas from this period still shape CoAna today:
   became the two-stage design.
 
 By December 2025 CoAna was a working research tool, built in Python on top of
-MDAnalysis, and its first applications were complete:
+MDAnalysis, and two theses had applied it:
 
-- **First thesis to use CoAna (December 2025).** A master's thesis in
+- **A bachelor's thesis (2025)** in materials science on the
+  pre-condensation of α-synuclein, the protein behind Parkinson's disease, ran
+  8 µs of Martini 3 molecular dynamics on 30 α-synuclein chains in a 25 nm box
+  at 300 K and analysed it with CoAna. CoAna followed every oligomer through
+  the run (more than 25 of at least three chains lived longer than 50 ns; the
+  longest lived 3.1 µs), counted the residue contacts inside each oligomer
+  over time, and gave free-energy surfaces and size-transition networks not
+  only for the whole system but for **one chosen oligomer**, here the two
+  longest-lived ones. Looking inside one oligomer, not only at the system
+  average, has been part of CoAna since.
+- **A master's thesis (December 2025)** in
   theoretical physics on liquid–liquid phase separation of α-synuclein used
   Dr. Co's CoAna for its whole analysis: how box size and temperature (290–330 K) change
   oligomerisation. CoAna supplied contact counts, oligomer numbers, sizes and
@@ -67,7 +77,7 @@ in the packaged workflow notebooks **CoAna v1** and **CoAna v2**
 
 ## May–June 2026 · oligomer-analysis 3.x, and a second field
 
-**Second thesis to use CoAna (June 2026).** A pharmacy thesis on the
+**Third thesis to use CoAna (June 2026).** A bachelor's thesis in pharmacy on the
 pre-aggregation of islet amyloid polypeptide (IAPP), the peptide whose
 aggregation kills β-cells in type 2 diabetes, analysed a 128-monomer Martini 3
 system (5 µs at 300 K) with Dr. Co's CoAna. Contacts were defined between residue
@@ -148,10 +158,10 @@ catalytic, passenger, promoting, or bystander.
 | Period | Version | Milestone |
 |---|---|---|
 | Jan 2024 | — | Development begins (analysis notebooks) |
-| Dec 2025 | — | First thesis to use CoAna (α-synuclein phase separation) |
+| 2025 | — | First two theses to use CoAna: α-synuclein pre-condensation (bachelor's) and phase separation (master's, Dec 2025) |
 | Feb 2026 | Oligomer Tracker | Notebook refactored into a package |
 | Mar–Apr 2026 | CoAna v1, v2 | Two-stage design: contact cache + fast analysis |
-| May–Jun 2026 | 3.0 – 3.1.2 | Installable package; lineage and fate layer; second thesis to use CoAna (IAPP, type 2 diabetes) |
+| May–Jun 2026 | 3.0 – 3.1.2 | Installable package; lineage and fate layer; third thesis to use CoAna (IAPP, type 2 diabetes) |
 | Aug 2026 | 3.3.0, CoAnaPure 1.2 | Own trajectory engine; main-fragment tracking |
 | 3 Sep 2026 | 3.4.0 | Mixed systems; guest mechanism |
 | 6 / 9 Oct 2026 | 3.5.0 / 3.5.1 | Branch-local mechanism; review fixes |
