@@ -23,7 +23,8 @@ def test_citations_command_prints_version_doi_and_acknowledgment(capsys):
     assert main(["citations"]) == 0
     out = capsys.readouterr().out
     assert f"CoAna {__version__}" in out
-    assert f"https://doi.org/{citations.SOFTWARE_DOI}" in out
+    doi = citations.VERSION_DOIS.get(__version__, citations.SOFTWARE_DOI)
+    assert f"https://doi.org/{doi}" in out
     assert citations.ACKNOWLEDGMENT in out
     assert "not a license condition" in out
     for ref in citations.METHOD_REFERENCES:
