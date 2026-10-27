@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Example: choose full or short oligomer/pathway labels in plots.
 
 This changes only the text shown in legends/titles. The original full labels are

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Oligomer analysis toolkit for MD trajectory contact clustering, pathway monitoring,
 and split/merge-aware protein aggregation lineage analysis.
 
@@ -147,7 +149,7 @@ from .timeline import (
     render_timeline_html,
 )
 
-__version__ = "3.6.2"
+__version__ = "3.7.0"
 
 
 def precompute_cache(*args, **kwargs):

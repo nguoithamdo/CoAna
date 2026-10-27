@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Unit tests for CoAnaPure 1.0 (pure NumPy Stage A).
 
 These tests do not require MDAnalysis.  A subset of cross-checks against

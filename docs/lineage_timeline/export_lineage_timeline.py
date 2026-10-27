@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Export the split/merge lineage graph as a time-ordered JSON payload.
 
 Feeds `build_timeline_html.py`, which inlines the payload into a standalone

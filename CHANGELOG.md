@@ -1,9 +1,49 @@
 # Changelog
 
+## 3.7.0 — 2026-10-27
+
+Security, compatibility and report fixes, and a new license; every analysis
+result is unchanged.
+
+### License
+
+- **CoAna is now licensed under the GNU Lesser General Public License, version
+  2.1 or later (LGPL-2.1-or-later)**, the model GROMACS uses. Academic and
+  commercial use, modification and redistribution are allowed under the LGPL's
+  terms; redistributed changes to CoAna's own code must stay under the LGPL.
+  The change covers **every version**: 3.6.0 and 3.6.1 (and the v3.6.2 tag),
+  first published under MIT, are now licensed under the LGPL-2.1-or-later too
+  (see `NOTICE`).
+- Every source file carries an SPDX header. `NOTICE` keeps the MIT-era
+  copyright notice and the BSD-2-Clause notice of the xdrfile code that the XTC
+  reader ports; `AUTHORS` lists the author.
+- New `coana citations` command (and `coana.citations` module): what to cite
+  when CoAna contributes to published work, with BibTeX via `--bibtex`. The
+  citation policy is in `CITATION.md`; it is a request, not a license condition.
+
+### Fixes
+
+- **Loading a cache can no longer run code from the file.** `load_cache` used
+  `np.load(..., allow_pickle=True)`, so a crafted `.npz` executed arbitrary
+  code as soon as it was opened. Caches are now read with
+  `allow_pickle=False`. The metadata of caches written before 3.7.0 is a
+  pickled string; it is read through an allowlist that can rebuild that
+  string and nothing else, so every existing cache still loads. New caches
+  store the metadata as plain text, readable by older CoAna versions too.
+- `load_cache` also accepts an open binary file (for example a web upload).
+- `figure_llps_coupling` no longer crashes on matplotlib 3.11, which removed
+  the `labels` argument of `boxplot`.
+- The HTML report (`coana report`) showed **0 on-pathway lineages** whatever
+  the run contained, and drew the fate bar chart without its fate colours: it
+  looked for the label `on_pathway`, while lineages are labelled
+  `on-pathway`. The classification itself was always correct; `coana
+  lineage` and every table were unaffected.
+
 ## 3.6.2 — 2026-10-24
 
-First release archived on Zenodo, which gives CoAna a citable DOI. The code is
-unchanged from 3.6.1.
+Tagged only; not released on GitHub or PyPI. The code is unchanged from
+3.6.1. The Zenodo DOI (10.5281/zenodo.23623975) was created from the 3.6.1
+release.
 
 ## 3.6.1 — 2026-10-24
 
@@ -102,7 +142,8 @@ unchanged.
   `dense_threshold` for an absolute rule that is comparable between runs.
 
 ### License
-MIT. Before this release the package carried no license.
+MIT. Before this release the package carried no license. Relicensed under the
+LGPL-2.1-or-later in 3.7.0, together with every other version.
 
 ## 3.5.1 — 2026-10-09
 

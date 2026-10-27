@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Atom selection for CoAnaPure Stage A.
 
 Restricting the contact analysis to a subset of atoms (backbone beads only,

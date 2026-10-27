@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """GROMACS .trr reader for CoAnaPure (pure NumPy, no MDAnalysis).
 
 TRR is an XDR (big-endian) container.  Each frame is::

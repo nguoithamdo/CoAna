@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Tests for the ``follow`` modes of the classic pathway tracker.
 
 Background: the legacy continuation can

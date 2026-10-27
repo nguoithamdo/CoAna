@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """CoAnaPure 1.3 -- a pure-NumPy/SciPy Stage A engine for oligomer contact analysis.
 
 CoAnaPure removes the MDAnalysis dependency from the expensive trajectory-facing

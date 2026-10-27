@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Pure-Python PDB reader for CoAnaPure (no MDAnalysis).
 
 Stage A only needs a small slice of what ``MDAnalysis.Universe`` provides:

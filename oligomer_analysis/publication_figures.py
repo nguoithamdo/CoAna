@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 from __future__ import annotations
 
 """Publication-oriented figure builders.
@@ -95,7 +97,11 @@ def figure_llps_coupling(
 
     order = ["on-pathway", "uncertain", "off-pathway"]
     data = [lineage_dense.loc[lineage_dense["classification"] == cls, "mean_dense_fraction_of_members"].dropna().values for cls in order]
-    axes[1].boxplot(data, labels=order, showfliers=True)
+    # matplotlib 3.9 renamed ``labels`` to ``tick_labels`` and 3.11 removed the old name.
+    try:
+        axes[1].boxplot(data, tick_labels=order, showfliers=True)
+    except TypeError:
+        axes[1].boxplot(data, labels=order, showfliers=True)
     axes[1].set_title("Dense-phase exposure by lineage fate")
     axes[1].set_ylabel("Mean dense fraction of members")
     axes[1].tick_params(axis="x", rotation=20)

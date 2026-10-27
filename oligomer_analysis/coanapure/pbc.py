@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Periodic-boundary geometry for CoAnaPure (pure NumPy, no MDAnalysis).
 
 This module reimplements the minimum-image-convention (MIC) helper that Stage A

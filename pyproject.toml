@@ -1,12 +1,13 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+# setuptools 77 is the first to accept an SPDX license expression (PEP 639).
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "coana"
-version = "3.6.2"
-license = "MIT"
-license-files = ["LICENSE"]
+version = "3.7.0"
+license = "LGPL-2.1-or-later"
+license-files = ["LICENSE", "NOTICE", "AUTHORS"]
 authors = [{ name = "Nguyen Truong Co" }]
 description = "MD trajectory oligomer contact analysis and pathway monitoring"
 readme = "README.md"

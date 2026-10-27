@@ -1,0 +1,73 @@
+CoAna
+=====
+
+Copyright (c) 2026 Nguyen Truong Co
+
+CoAna is free software: you can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public License as published by the Free
+Software Foundation, either version 2.1 of the License, or (at your option)
+any later version. SPDX-License-Identifier: LGPL-2.1-or-later
+
+CoAna is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE. See the GNU Lesser General Public License, in the file
+LICENSE, for more details.
+
+Citing CoAna in published work is requested, not required by the license; see
+CITATION.md. That request adds no condition to the LGPL.
+
+
+All versions
+------------
+
+The copyright holder licenses every version of CoAna under the
+LGPL-2.1-or-later, including 3.6.0 and 3.6.1 (published on PyPI and Zenodo)
+and the v3.6.2 tag. Those three were first published under the MIT License,
+with the notice
+
+    Copyright (c) 2026 Nguyen Truong Co and the CoAna contributors
+
+Copies obtained under that MIT License before this change keep the rights it
+granted.
+
+
+Third-party code included in CoAna
+----------------------------------
+
+oligomer_analysis/coanapure/xtc_io.py contains a Python port of the XTC
+coordinate decompressor (xdr3dfcoord, by Frans van Hoesel) from the xdrfile
+library, as distributed with MDAnalysis and MDTraj. That part is used under the
+following license (SPDX-License-Identifier: BSD-2-Clause):
+
+    Copyright (c) 2009-2014, Erik Lindahl & David van der Spoel
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Dependencies
+------------
+
+CoAna does not bundle its dependencies; each is installed separately under its
+own license. Required: NumPy, SciPy, pandas, joblib, ipywidgets and NetworkX
+(BSD-style), Matplotlib (Matplotlib license, PSF-based), openpyxl and plotly
+(MIT). Optional: MDAnalysis (packaged under LGPL-3.0-or-later), pytest (MIT).

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Tests for the ``coana`` command-line interface and the HTML report module."""
 
 from __future__ import annotations
@@ -169,3 +171,22 @@ def test_report_default_output_path(small_cache):
     path = generate_html_report(str(small_cache), verbose=False)
     assert path.endswith("cache_report.html")
     assert os.path.exists(path)
+
+
+def test_report_counts_on_pathway_lineages(small_cache, tmp_path):
+    """The tile used to compare against "on_pathway" and always showed 0."""
+    import re
+
+    from oligomer_analysis.lineage import build_lineages_from_cache
+    from oligomer_analysis.models import TargetStateConfig
+
+    cache = load_cache(str(small_cache))
+    target = TargetStateConfig(min_size=3, min_duration=2)
+    result = build_lineages_from_cache(cache, inter_thresh=1, target_config=target)
+    n_on = sum(1 for lin in result.lineages if lin.class_label == "on-pathway")
+    assert n_on > 0
+    out = tmp_path / "r.html"
+    generate_html_report(cache, out, inter_thresh=1, target_config=target, verbose=False)
+    page = out.read_text(encoding="utf-8")
+    tile = re.search(r'<div class="v">(\d+)</div><div class="k">On-pathway lineages</div>', page)
+    assert tile is not None and int(tile.group(1)) == n_on

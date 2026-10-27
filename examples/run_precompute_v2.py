@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Stage A precomputation example for the V2 protein aggregation package.
 
 Run this only when you need to create or rebuild the `.npz` cache.

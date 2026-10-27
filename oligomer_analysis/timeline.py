@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Time-ordered interactive lineage timeline.
 
 A force-directed lineage graph (:func:`~oligomer_analysis.plot_lineage_graph`)

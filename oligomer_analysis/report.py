@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Publication-grade HTML reporting for CoAnaPure / oligomer-analysis runs.
 
 :func:`generate_html_report` turns a Stage A cache (plus the lineage analysis
@@ -251,14 +253,14 @@ def _fig_lineage_classes(result: LineageTrackingResult) -> str:
     from collections import Counter
 
     counts = Counter(lin.class_label for lin in result.lineages)
-    order = ["on_pathway", "off_pathway", "uncertain"]
+    order = ["on-pathway", "off-pathway", "uncertain"]
     labels = [lab for lab in order if lab in counts] + [
         lab for lab in counts if lab not in order
     ]
     values = [counts[lab] for lab in labels]
     colors = {
-        "on_pathway": _C["blue"],
-        "off_pathway": _C["orange"],
+        "on-pathway": _C["blue"],
+        "off-pathway": _C["orange"],
         "uncertain": _C["muted"],
     }
     fig = _new_fig(height=2.8, width=6.0)
@@ -674,7 +676,7 @@ def generate_html_report(
         _tile(f"{final_bound_frac * 100:.0f}%", "Final bound fraction"),
     ]
     if lineage_result is not None:
-        n_on = sum(1 for l in lineage_result.lineages if l.class_label == "on_pathway")
+        n_on = sum(1 for l in lineage_result.lineages if l.class_label == "on-pathway")
         tiles += [
             _tile(f"{len(lineage_result.lineages)}", "Lineages tracked"),
             _tile(f"{n_on}", "On-pathway lineages"),

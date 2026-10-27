@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Interaction-type decomposition of inter-chain contacts.
 
 A contact map answers *that* two chains stick together.  It cannot answer *why*,

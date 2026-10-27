@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 from oligomer_analysis import load_cache, analyze_from_cache, plot_small_world_range
 
 cache = load_cache("cache_cut6.5_compactness.npz")

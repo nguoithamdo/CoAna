@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """``coana`` -- the command-line interface of the CoAna package.
 
 Runs the full CoAnaPure Stage A workflow (and the HTML report) without writing
@@ -322,6 +324,13 @@ def _cmd_version(args: argparse.Namespace) -> int:
     from .coanapure import __version__ as engine_version
 
     print(f"coana {pkg_version} (CoAnaPure engine {engine_version})")
+    return 0
+
+
+def _cmd_citations(args: argparse.Namespace) -> int:
+    from .citations import citation_bibtex, citation_text
+
+    print(citation_bibtex() if args.bibtex else citation_text(), end="" if args.bibtex else "\n")
     return 0
 
 
@@ -1298,6 +1307,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("version", help="print package and engine versions")
     p.set_defaults(func=_cmd_version)
+
+    p = sub.add_parser("citations", help="what to cite when CoAna contributes to published work")
+    p.add_argument("--bibtex", action="store_true", help="print BibTeX entries instead of text")
+    p.set_defaults(func=_cmd_citations)
 
     return parser
 

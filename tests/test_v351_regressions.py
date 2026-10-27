@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """3.5.1: defects in the 3.5.0 branch-local mechanism and directed fates.
 
 Found by an independent review and

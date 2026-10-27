@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Tests for the interactive lineage timeline: payload, renderer and CLI.
 
 The page itself is checked by ``docs/lineage_timeline/smoke_test.js`` (29 checks

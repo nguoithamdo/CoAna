@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Clean V2 workflow example for protein aggregation analysis.
 
 This script assumes Stage A precomputation has already produced a cache file.

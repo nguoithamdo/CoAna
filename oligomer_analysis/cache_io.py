@@ -1,6 +1,10 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 from __future__ import annotations
 
+import io
 import json
+import pickle
 from pathlib import Path
 from typing import Dict, Iterable, Optional
 
@@ -38,10 +42,63 @@ def validate_cache(cache: ContactCache) -> None:
         )
 
 
+class _MetaUnpickler(pickle.Unpickler):
+    """Unpickler that can rebuild a NumPy object array and nothing else.
+
+    Caches written before 3.7.0 store ``meta_json`` as a 0-d object array,
+    which ``np.save`` pickles. A full unpickler would run whatever a crafted
+    file asks it to, so only the three globals that array needs are allowed.
+    """
+
+    _ALLOWED = {
+        ("numpy.core.multiarray", "_reconstruct"),
+        ("numpy._core.multiarray", "_reconstruct"),
+        ("numpy", "ndarray"),
+        ("numpy", "dtype"),
+    }
+
+    def find_class(self, module, name):
+        if (module, name) in self._ALLOWED:
+            return super().find_class(module, name)
+        raise pickle.UnpicklingError(
+            f"cache metadata refers to {module}.{name}; a CoAna cache never does, "
+            "so the file is not trusted"
+        )
+
+
+def _read_meta_json(z) -> Dict:
+    """Return the cache metadata without unpickling anything unsafe."""
+    try:
+        raw = z["meta_json"]
+    except ValueError:
+        # Object array from a pre-3.7.0 cache: read it through the allowlist.
+        with z.zip.open("meta_json.npy") as fh:
+            version = np.lib.format.read_magic(fh)
+            if version == (1, 0):
+                np.lib.format.read_array_header_1_0(fh)
+            else:
+                np.lib.format.read_array_header_2_0(fh)
+            raw = _MetaUnpickler(io.BytesIO(fh.read())).load()
+    if not isinstance(raw, np.ndarray) or raw.size != 1:
+        raise ValueError("cache meta_json is not a single string")
+    text = raw.item()
+    if not isinstance(text, str):
+        raise ValueError("cache meta_json is not a string")
+    meta = json.loads(text)
+    if not isinstance(meta, dict):
+        raise ValueError("cache meta_json is not a JSON object")
+    return meta
+
+
 def load_cache(npz_path: str | Path) -> ContactCache:
-    """Load a Stage A cache from disk."""
-    z = np.load(npz_path, allow_pickle=True)
-    meta = json.loads(str(z["meta_json"].item()))
+    """Load a Stage A cache from disk (or from an open binary file).
+
+    Nothing in the file is unpickled except, for caches written before
+    3.7.0, the metadata string, and that through a strict allowlist. A cache
+    from an untrusted source therefore cannot run code when it is loaded.
+    """
+    z = np.load(npz_path, allow_pickle=False)
+    meta = _read_meta_json(z)
     keys = set(z.files)
     cache = ContactCache(
         frames=z["frames"],
@@ -109,7 +166,7 @@ def save_cache(
         n_bound=n_bound,
         seg_centers=seg_centers,
         boxes=boxes,
-        meta_json=np.array(json.dumps(meta), dtype=object),
+        meta_json=np.array(json.dumps(meta)),
         **extra,
     )
 
@@ -152,7 +209,7 @@ def save_contact_cache(cache: ContactCache, out_npz: str | Path, *, save_csv_sta
         n_bound=cache.n_bound,
         seg_centers=cache.seg_centers,
         boxes=cache.boxes,
-        meta_json=np.array(json.dumps(meta), dtype=object),
+        meta_json=np.array(json.dumps(meta)),
         **extra,
     )
     if save_csv_stats:

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Build a Stage A cache with CoAnaPure 1.0 -- no MDAnalysis required.
 
 The resulting ``.npz`` is identical in format to the one produced by the original

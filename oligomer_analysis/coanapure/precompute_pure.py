@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """CoAnaPure Stage A -- MDAnalysis-free precomputation.
 
 This is a drop-in replacement for :func:`oligomer_analysis.precompute.precompute_cache`

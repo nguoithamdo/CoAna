@@ -5,7 +5,7 @@
 [![PyPI](https://img.shields.io/pypi/v/coana.svg)](https://pypi.org/project/coana/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23623975.svg)](https://doi.org/10.5281/zenodo.23623975)
 [![tests](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml/badge.svg)](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: LGPL-2.1-or-later](https://img.shields.io/badge/license-LGPL--2.1--or--later-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
 An MD aggregation run produces thousands of transient clusters. Most of them
@@ -456,13 +456,37 @@ see [HISTORY.md](HISTORY.md) for how it grew.
 [ORCID 0000-0001-5642-3641](https://orcid.org/0000-0001-5642-3641) ·
 [Google Scholar](https://scholar.google.com/citations?user=0ttB9NsAAAAJ)
 
-If CoAna helps your work, please cite it:
+## Citing CoAna
+
+If you use CoAna to generate, process, analyze, or interpret results included
+in a scientific publication, conference paper, thesis, technical report, or
+published commercial research, please cite the original CoAna publication and
+acknowledge the software. The methodology publication is in preparation; until
+it appears, cite the software with the version you used:
 
 > Nguyen, T. C. CoAna: lineage-aware analysis of protein aggregation in
-> molecular dynamics. Zenodo. https://doi.org/10.5281/zenodo.23623975
+> molecular dynamics (version X.Y.Z). Zenodo. https://doi.org/10.5281/zenodo.23623975
 
-(or use the "Cite this repository" button on GitHub).
+Suggested acknowledgment:
+
+> Molecular dynamics trajectory analysis was performed using CoAna, a
+> lineage-aware molecular assembly analysis framework developed by Nguyen
+> Truong Co (Truong Co Group).
+
+`coana citations` prints the references for your installed version, including
+the published methods some analyses implement (`--bibtex` for BibTeX).
+[CITATION.md](CITATION.md) has the full policy; GitHub's "Cite this
+repository" button reads `CITATION.cff`. Citing is a request, not a condition
+of the license.
 
 ## License
 
-MIT. See `LICENSE`.
+CoAna is free software, licensed under the **GNU Lesser General Public
+License, version 2.1 or later** (SPDX: `LGPL-2.1-or-later`), the license model
+of GROMACS. You may use it for academic, educational and commercial work,
+modify it, redistribute it, and use it from other software, including
+proprietary software, under the LGPL's conditions; redistributed changes to
+CoAna itself must remain under the LGPL. See [LICENSE](LICENSE) for the full
+text and [NOTICE](NOTICE) for copyright and third-party code. The license
+covers every version of CoAna, including 3.6.0 and 3.6.1, which were first
+published under MIT.

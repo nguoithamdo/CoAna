@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """3.6.0 merge acceptance: FIX-02 ``pre-commitment`` against 3.5.1's branch-local rework.
 
 The audit's FIX-02 was written against 3.4.0, where commitment was judged on the

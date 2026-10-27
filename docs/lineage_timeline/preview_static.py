@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Static preview of the interactive timeline.
 
 Mirrors the page's layout rules (largest lineages first, greedy lane packing,

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Tests for the v3.4 feature set.
 
 Every expected number below is derived from the construction of the synthetic

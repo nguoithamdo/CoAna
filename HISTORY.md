@@ -141,7 +141,8 @@ catalytic, passenger, promoting, or bystander.
   Sixteen defects were fixed, each with a regression test proven to fail on
   the old code. The package was renamed **`coana`** (`pip install coana`,
   `import coana`; `import oligomer_analysis` still works), licensed under
-  **MIT**, and hardened:
+  **MIT** (relicensed with every other version under the LGPL-2.1-or-later in
+  3.7.0), and hardened:
   - a trajectory without a periodic box is refused rather than analysed
     silently, since contacts across the box faces would be lost;
   - PDB files written by GROMACS keep the box of their first frame;
@@ -166,6 +167,7 @@ catalytic, passenger, promoting, or bystander.
 | 3 Sep 2026 | 3.4.0 | Mixed systems; guest mechanism |
 | 6 / 9 Oct 2026 | 3.5.0 / 3.5.1 | Branch-local mechanism; review fixes |
 | 23–24 Oct 2026 | 3.6.0 | Audit, MIT license, renamed `coana`, public on GitHub |
+| 27 Oct 2026 | 3.7.0 | All versions relicensed under the LGPL-2.1-or-later; `coana citations` |
 
 ---
 

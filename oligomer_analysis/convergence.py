@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Has the aggregation actually settled?
 
 Every number quoted from a trajectory -- a mean cluster size, a bound fraction,

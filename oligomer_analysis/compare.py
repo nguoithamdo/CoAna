@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Summarise many runs into one table, and group them without pooling mistakes.
 
 A campaign produces dozens of caches that differ in concentration, force-field

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """The dense/dilute phase observable.
 
 The regression these guard against: ``dense_phase_fraction_timeseries`` used to
@@ -295,3 +297,20 @@ def test_a_quantile_calibrated_table_is_marked_relative():
     assert bool(rel["relative_to_reference"].iloc[0]) is True
     absolute = dense_phase_fraction_timeseries(_cache(centers), dense_threshold=0.05)
     assert bool(absolute["relative_to_reference"].iloc[0]) is False
+
+
+def test_dense_phase_figure_draws_on_current_matplotlib(growth_lineages_llps):
+    """3.7.0: ``boxplot(labels=...)`` raised TypeError on matplotlib >= 3.11."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from oligomer_analysis.publication_figures import figure_llps_coupling
+
+    cache, result = growth_lineages_llps
+    fig, axes, _ts, _tbl = figure_llps_coupling(cache, result)
+    assert [t.get_text() for t in axes[1].get_xticklabels()] == [
+        "on-pathway", "uncertain", "off-pathway"
+    ]
+    plt.close(fig)

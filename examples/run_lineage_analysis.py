@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 from oligomer_analysis import (
     TargetStateConfig,
     build_lineages_from_cache,

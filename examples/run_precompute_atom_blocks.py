@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Stage A precomputation for large Martini PDB systems with reused chain IDs.
 
 Use this when a PDB file contains many physical monomers but the one-character

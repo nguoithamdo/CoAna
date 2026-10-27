@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Species-aware analysis for multi-component systems.
 
 Stage A treats every monomer as an interchangeable segment, which is correct for

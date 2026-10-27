@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Synthetic trajectories and caches shared by the test modules.
 
 Every fixture here is small enough that the expected answer can be worked out by

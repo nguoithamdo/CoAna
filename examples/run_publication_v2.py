@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """V2 publication workflow: commitment, predictors, LLPS, and hotspots."""
 
 from oligomer_analysis import (

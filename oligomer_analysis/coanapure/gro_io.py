@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """GROMACS .gro reader for CoAnaPure (pure NumPy, no MDAnalysis).
 
 A ``.gro`` file stores one or more concatenated frames::

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Example: calibrating plots for large oligomers up to size 100.
 
 This script shows how to use the same calibration object across whole-system,

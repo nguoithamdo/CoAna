@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Export the analysis as networks other tools already read.
 
 Two graphs come out of a lineage analysis, and neither is easy to share in the

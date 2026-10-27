@@ -1,0 +1,16 @@
+CoAna authors
+=============
+
+Author
+------
+
+Nguyen Truong Co (Truong Co Group)
+    ORCID: https://orcid.org/0000-0001-5642-3641
+
+Third-party code
+----------------
+
+The XTC decompressor in oligomer_analysis/coanapure/xtc_io.py is a port of
+xdr3dfcoord by Frans van Hoesel, from the xdrfile library,
+Copyright (c) 2009-2014 Erik Lindahl & David van der Spoel (BSD-2-Clause).
+See NOTICE.

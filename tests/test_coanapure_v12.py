@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Tests for the CoAnaPure 1.2 additions.
 
 Covers: atom selections (equivalence with a physically filtered file),

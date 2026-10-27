@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Correctness + speed comparison: CoAnaPure vs the MDAnalysis Stage A.
 
 Runs both engines on the *same* PDB with the *same* :class:`PrecomputeConfig`,

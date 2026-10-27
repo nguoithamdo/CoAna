@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Example: turn legends on/off in V3.1.2 plots.
 
 This assumes you already created `cache`, `finished`, `frames_clusters`, and

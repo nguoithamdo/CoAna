@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Inline an exported lineage payload into a standalone interactive page.
 
     python docs/lineage_timeline/export_lineage_timeline.py

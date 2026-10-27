@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Nguyen Truong Co
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """Periodic-boundary handling in the MSD / unwrapping path.
 
 Every expected value here is analytic. The test system is a rigid dimer in a
