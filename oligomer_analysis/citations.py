@@ -31,6 +31,7 @@ SOFTWARE_DOI = "10.5281/zenodo.23623975"
 #: Version-specific Zenodo DOIs, for releases that have one.
 VERSION_DOIS: Dict[str, str] = {
     "3.6.1": "10.5281/zenodo.23623976",
+    "3.7.0": "10.5281/zenodo.23690737",
 }
 
 #: The original CoAna methodology paper. None until it is published.
