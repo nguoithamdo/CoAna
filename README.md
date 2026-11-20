@@ -26,9 +26,11 @@ Cluster-counting tools tell you *which* clusters exist. CoAna tells you
 
 - **Reads trajectories directly**: XTC, TRR, GRO and PDB, with NumPy/SciPy only.
   MDAnalysis is optional.
-- **Exact periodic contacts**: minimum-image contacts across every box face.
+- **Exact periodic contacts**: minimum-image contacts across every box face,
+  exact whenever the cutoff is below half the smallest box height (Stage A warns
+  otherwise).
 - **Bit-for-bit reproducible**: re-running Stage A reproduces a production
-  contact cache exactly; 255 tests run on Linux and Windows.
+  contact cache exactly; the test suite runs on Linux and Windows in CI.
 
 ```bash
 pip install coana
@@ -276,8 +278,10 @@ Expected behavior:
 
 - **Nothing in the package requires MDAnalysis.** Stage A precomputation is done
   by the built-in CoAnaPure engine (`precompute_cache_pure`) using NumPy/SciPy
-  only; it streams `.pdb`, `.gro`, `.trr`, and `.xtc` trajectories at constant
-  memory and writes the identical `.npz` cache. It supports atom selections
+  only; it streams `.pdb`, `.gro`, `.trr`, and `.xtc` trajectories frame by frame
+  and writes the identical `.npz` cache. Coordinates are never loaded whole, but the
+  per-frame chain contact maps are kept until the cache is written, so memory grows
+  with the number of frames and the square of the number of chains. It supports atom selections
   (`selection="not resname W ION"`), unequal monomer sizes
   (`segment_mode="atom_counts"`), process-parallel parsing (`parallel="process"`),
   progress/ETA reporting, and checkpoint/resume for batch jobs.

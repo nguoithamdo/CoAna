@@ -20,6 +20,11 @@ in at every frame, and when that assembly committed -- which is exactly what the
 lineage layer plus a species map provide.  This module turns those into per-visit
 records and classifies each one.
 
+The labels are named after the mechanisms they screen for, but each is a rule on
+the order of events and on host-chain counts; none measures a rate.  A visit
+labelled ``catalytic`` is *consistent with* catalysis, not proof of it, and the
+``reason`` text of every visit says only what was observed.
+
 Two further outcomes fall out of the same records and are worth naming, because
 both are routinely mistaken for the first two:
 
@@ -761,27 +766,35 @@ def _classify_residence(
         return (
             "incorporated",
             f"present when the assembly reached {commit_size} host chains and "
-            "still there at the end -- part of the product",
+            "still there at the end -- retained through commitment",
         )
     if committed and present_at_commit and not survives:
         kept_going = not np.isfinite(growth_after) or growth_after >= 0
         if kept_going:
+            after = (
+                "the assembly could not be followed for the whole follow-up "
+                "window after it left"
+                if not np.isfinite(growth_after)
+                else "the assembly held at least as many host chains at the end "
+                "of the follow-up window as when it left"
+            )
             return (
                 "catalytic",
-                f"present at commitment ({commit_size} host chains), then left "
-                "while the assembly held or kept growing -- promotes formation "
-                "without joining the product",
+                f"present at commitment ({commit_size} host chains), then left; "
+                f"{after} -- an order of events, not a measured effect on the "
+                "rate of formation",
             )
         return (
             "transient",
-            "present at commitment but the assembly shrank after departure; "
-            "the visit did not leave a stable aggregate behind",
+            f"present at commitment ({commit_size} host chains), then left; the "
+            "assembly held fewer host chains at the end of the follow-up window "
+            "than when it left",
         )
     if committed and joined_after_commit:
         return (
             "passenger",
-            "joined an assembly that had already committed -- recruited by the "
-            "aggregate rather than contributing to its formation",
+            "joined an assembly that had already committed -- arrived after "
+            "commitment, so absent while the assembly formed",
         )
     if committed and not present_at_commit and not joined_after_commit:
         # The guest was gone before the assembly reached commit_size: the one

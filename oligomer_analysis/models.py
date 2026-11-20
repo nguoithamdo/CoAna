@@ -82,7 +82,9 @@ class PrecomputeConfig:
     # contact_classes: decompose inter-chain residue contacts by residue
     #   chemistry (hydrophobic / polar / charged / ...), giving a (n_frames,
     #   n_classes, n_classes) matrix. This is what turns "these chains stick"
-    #   into "these chains stick through salt bridges".
+    #   into "these chains stick through salt bridges". The same decomposition
+    #   is also stored per chain pair (sparse), so Stage B can give the
+    #   chemistry of each oligomer, not only of the whole system.
     # hotspot_blocks: accumulate residue-resolved cross-species contact maps in
     #   this many equal time blocks (1 = one map for the whole trajectory,
     #   0/None = off). Answers which sequence region of species A touches
@@ -109,8 +111,11 @@ class FrameContacts:
     # .hotspot_blocks). ``hotspot`` is folded into the running block sums as soon
     # as the frame is consumed and then dropped, so peak memory stays at a few
     # frames rather than the whole trajectory.
+    # ``pair_class`` holds one row (chain_lo, chain_hi, class_lo, class_hi,
+    # count) per chain pair and unordered class pair in contact this frame.
     class_cmap: Optional[np.ndarray] = None
     hotspot: Optional[np.ndarray] = None
+    pair_class: Optional[np.ndarray] = None
 
 
 @dataclass(slots=True)
@@ -143,8 +148,16 @@ class ContactCache:
     #   resolved contact counts between chains of each species pair, summed over
     #   all chain pairs and over the frames of each time block. Block frame
     #   ranges live in ``meta['hotspot_blocks']``.
+    # pair_class_rows / pair_class_offsets: the class decomposition per chain
+    #   pair, stored sparsely. Rows (chain_lo, chain_hi, class_lo, class_hi,
+    #   count) of frame index i are pair_class_rows[offsets[i]:offsets[i + 1]];
+    #   class_lo <= class_hi index ``meta['contact_classes']``. Summed over all
+    #   chain pairs they give class_cmaps; summed over the chains of one
+    #   oligomer they give that oligomer's contact chemistry.
     class_cmaps: Optional[np.ndarray] = None
     hotspot_maps: Optional[np.ndarray] = None
+    pair_class_rows: Optional[np.ndarray] = None
+    pair_class_offsets: Optional[np.ndarray] = None
 
     @property
     def class_names(self) -> List[str]:
@@ -179,10 +192,16 @@ class TargetStateConfig:
     """Operational definition of productive aggregation.
 
     On/off-pathway classification is only meaningful after defining a target
-    aggregated state.  A transparent first definition is a persistent aggregate:
+    aggregated state.  A target segment is a segment (one oligomer identity
+    between splits and merges) that
 
-    - cluster size >= ``min_size``
-    - continuous lifetime >= ``min_duration`` frames
+    - reaches ``min_size`` chains in at least one frame (its maximum size), and
+    - lasts at least ``min_duration`` frames as a segment.
+
+    The size need not be held for ``min_duration`` consecutive frames.  Guest
+    commitment (``mechanism.py``) does require the size to be held for
+    consecutive frames, because the visit labels need the frame at which the
+    assembly commits; a fate needs only whether a target segment is reachable.
 
     ``min_contribution`` controls how much monomer continuity into such target
     states is required to call a lineage on-pathway.  The explicit

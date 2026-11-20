@@ -1060,18 +1060,24 @@ def representative_pathways_for_lineages(result: LineageTrackingResult) -> List[
 # ---------------------------------------------------------------------------
 
 def directed_fates(result: LineageTrackingResult) -> "pd.DataFrame":
-    """Fate of every nucleation event, following time forward only.
+    """Fate of every root, following time forward only.
 
-    A *lineage* groups every segment ever joined by any split or merge, in both
+    A *root* is a segment with no parent: a cluster present in the first
+    analysed frame (whose formation was not observed) or a later birth.  A
+    *lineage* groups every segment ever joined by any split or merge, in both
     directions, so a fragment shed from a large aggregate, or a cluster that only
     merges into one much later, shares that aggregate's lineage and its
-    ``on-pathway`` label.  This table asks a narrower question of each birth (a
-    segment with no parent): is a target state reachable *forward* from it,
-    through its own descendants?
+    ``on-pathway`` label.  This table asks a narrower question of each root: is a
+    target state reachable *forward* from it, through its own descendants?
 
     ``fate`` is ``on-pathway`` when a target segment is reachable forward,
     ``uncertain`` when some descendant is still alive in the last frame without
-    a target having been reached, and ``off-pathway`` otherwise.
+    a target having been reached, and ``off-pathway`` otherwise.  Reachability
+    includes merging into an aggregate that already has the target size, so an
+    on-pathway root is not necessarily one whose descendants built the aggregate.
+    ``frames_to_target`` counts frames to the *start* of the first reachable
+    target segment, which can precede the first frame at which that segment
+    holds ``min_size`` chains.
     """
     import pandas as pd
 
@@ -1127,7 +1133,7 @@ def directed_fates(result: LineageTrackingResult) -> "pd.DataFrame":
 
 
 def directed_fate_summary(df: "pd.DataFrame", *, min_span: int = 1) -> "pd.DataFrame":
-    """On/off/uncertain counts of nucleation events, optionally split by composition.
+    """On/off/uncertain counts of roots, optionally split by composition.
 
     ``min_span`` drops births whose whole forward subtree lasts fewer frames,
     the directed counterpart of the ``duration >= 50`` persistence filter.

@@ -15,7 +15,9 @@ step (Stage A).  It re-implements the pieces of MDAnalysis the original
 and exposes :func:`precompute_cache_pure`, a signature-compatible drop-in for
 ``precompute_cache`` that writes the identical ``.npz`` cache format consumed by
 every downstream Stage B / lineage / plotting module.  The engine streams
-trajectories at constant memory, runs the per-frame contact loop on threads or
+trajectory coordinates frame by frame (the per-frame contact maps are kept until
+the cache is written, so memory grows with the number of frames), runs the
+per-frame contact loop on threads or
 whole frame chunks on processes (``parallel="process"``, PDB + byte-offset
 index), supports atom selections (``cfg.selection``), unequal monomer sizes
 (``segment_mode="atom_counts"``), progress/ETA reporting, and crash-safe

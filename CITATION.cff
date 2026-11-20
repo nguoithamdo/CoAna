@@ -10,9 +10,9 @@ authors:
     given-names: "Truong Co"
     orcid: "https://orcid.org/0000-0001-5642-3641"
     affiliation: "Truong Co Group"
-version: 3.7.0
+version: 3.8.0
 doi: 10.5281/zenodo.23623975
-date-released: 2026-10-27
+date-released: 2026-11-20
 license: LGPL-2.1-or-later
 repository-code: "https://github.com/nguoithamdo/CoAna"
 keywords:

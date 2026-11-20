@@ -15,6 +15,13 @@ Two paths are provided:
 * triclinic (any non-90 angle) -- a brute-force search over the 27 nearest
   periodic images, which reproduces MDAnalysis' ``_minimize_vectors_triclinic``
   for the physically relevant (not extremely skewed) case.
+
+For contact detection the triclinic search is exact for any cell shape as long
+as the cutoff is below half the smallest box height (the distance between
+opposite faces), the condition MD engines impose on their own cutoffs: a pair
+closer than such a cutoff has every fractional component below 1/2, so after
+reduction into [-1/2, 1/2) only shifts of -1, 0 or +1 can matter.
+:func:`min_box_height` gives that height.
 """
 
 from __future__ import annotations
@@ -26,9 +33,19 @@ import numpy as np
 __all__ = [
     "box_is_orthorhombic",
     "triclinic_vectors",
+    "min_box_height",
     "minimize_vectors",
     "wrap_positions",
 ]
+
+
+def min_box_height(box) -> float:
+    """Smallest distance between opposite faces of the cell (angstrom)."""
+    mat = triclinic_vectors(_as_box6(box))
+    volume = abs(float(np.linalg.det(mat)))
+    a, b, c = mat
+    areas = [np.linalg.norm(np.cross(b, c)), np.linalg.norm(np.cross(c, a)), np.linalg.norm(np.cross(a, b))]
+    return float(volume / max(areas)) if max(areas) > 0 else 0.0
 
 
 def _as_box6(box) -> np.ndarray:

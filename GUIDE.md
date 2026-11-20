@@ -473,6 +473,33 @@ target → on-pathway; high future contribution and low trap score →
 on-pathway; low contribution *and* (short-lived, or trapped, or non-growing)
 → off-pathway; otherwise uncertain.
 
+Read the two on-pathway routes separately. The second (*material*) rule labels
+a lineage on-pathway when most chains of one of its clusters later belong to a
+target segment, so a dimer that lived two frames and whose chains were later
+recruited into the aggregate is on-pathway too. The column `target_reached`
+says which lineages contain a target segment themselves; in a 50-chain Martini
+example, 1 of 32 on-pathway lineages did and 31 were one-segment dimers.
+
+### Directed fates of roots
+
+`directed_fates(result)` (and `coana lineage --directed-out roots.csv`) follows
+every **root**, a segment with no parent, forward through its own descendants.
+Roots are the clusters present in the first analysed frame, whose formation was
+not observed, and the later births. With the default inheritance fractions a
+later-born dimer is always two chains that were unclustered in the previous
+frame, so most roots are dimers by construction; tell them apart by their
+histories, not their size at birth.
+
+`fate` is `on-pathway` when a target segment is reachable forward,
+`uncertain` when a descendant is still alive at the end without one, and
+`off-pathway` otherwise. Reachability includes **merging into an aggregate
+that already has the target size**, so an on-pathway root is not necessarily
+one whose descendants built the aggregate. `frames_to_target` is the time to
+the *start* of the first reachable target segment, which can precede the first
+frame at which that segment holds `min_size` chains. Directed fates depend on
+the cluster and inheritance settings and on `min_size` and `min_duration`;
+they do not use the contribution thresholds or the trap score.
+
 ### Lineage graph
 
 On a system this size the full-run graph (9,790 segments) is unreadable —
@@ -791,7 +818,7 @@ once contacts are binned to chains):
 
 | Option | Stores | Cost |
 |---|---|---|
-| `--contact-classes` | per frame, a 6×6 matrix of inter-chain contacts by residue chemistry: `apolar`, `aromatic`, `polar`, `cation`, `anion`, `other` | negligible |
+| `--contact-classes` | per frame, a 6×6 matrix of inter-chain contacts by residue chemistry: `apolar`, `aromatic`, `polar`, `cation`, `anion`, `other`; from 3.8 also the same counts per chain pair in contact (sparse) | matrix negligible; the per-pair rows grow with the contacting chain pairs (50 α-synuclein chains, 5001 frames: 5.0 M rows, cache 20 MB instead of 6 MB) |
 | `--hotspot-blocks N` | a `(N, S, S, R, R)` residue×residue contact tensor between species, summed in `N` time blocks | ~`N·S²·R²·4` bytes, e.g. 5 blocks × 295² × 4 species-pairs ≈ 7 MB; folded as frames arrive, never held per frame |
 
 `coana info` shows the species line and an `extras :` line naming what the
@@ -834,6 +861,27 @@ This is how an electrostatics conclusion is *shown* rather than inferred: if
 salt suppresses aggregation, the salt-bridge channel should be the one that
 shrinks. Python: `contact_class_summary`, `contact_class_dataframe`,
 `salt_bridge_timeseries`, `hydrophobic_fraction_timeseries`.
+
+**Per oligomer and per lineage (3.8).** From 3.8, `--contact-classes` also
+stores the same decomposition for every chain pair in contact (sparse rows
+`chain_lo, chain_hi, class_lo, class_hi, count`), so the chemistry of each
+oligomer can be read off the cache: only contacts between two chains of the
+oligomer count.
+
+```bash
+coana chemistry cache.npz --per-oligomer seg_chem.csv --per-lineage lin_chem.csv \
+    --min-size 10 --min-duration 5
+```
+
+`seg_chem.csv` has one row per oligomer segment (`segment_id`, `lineage_id`,
+`frames`, `contacts`, `mean_contacts` and the fraction of its contacts in each
+channel, e.g. `salt_bridge_fraction`, `hydrophobic_fraction`), pooled over the
+segment's frames; `lin_chem.csv` pools all segments of a lineage. Join them on
+`segment_id`/`lineage_id` with the lineage, directed-fate and feature tables.
+Python: `oligomer_class_matrix(cache, frame_index, members)` for one oligomer
+in one frame, `segment_chemistry_timeseries(cache, segment)` for its lifetime,
+`oligomer_chemistry_tables(cache, result)` for all of them. Caches made before
+3.8 hold only the system-wide matrix; rebuild Stage A to get these.
 
 ### 17.4 Which residues bind which? `coana hotspots`
 

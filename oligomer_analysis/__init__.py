@@ -86,7 +86,10 @@ from .chemistry import (
     contact_class_summary,
     describe_contact_classes,
     hydrophobic_fraction_timeseries,
+    oligomer_chemistry_tables,
+    oligomer_class_matrix,
     salt_bridge_timeseries,
+    segment_chemistry_timeseries,
 )
 from .convergence import (
     ConvergenceReport,
@@ -149,7 +152,7 @@ from .timeline import (
     render_timeline_html,
 )
 
-__version__ = "3.7.0"
+__version__ = "3.8.0"
 
 
 def precompute_cache(*args, **kwargs):
@@ -288,6 +291,9 @@ __all__ = [
     "contact_class_dataframe",
     "contact_class_summary",
     "describe_contact_classes",
+    "oligomer_class_matrix",
+    "segment_chemistry_timeseries",
+    "oligomer_chemistry_tables",
     "salt_bridge_timeseries",
     "hydrophobic_fraction_timeseries",
     "ConvergenceReport",

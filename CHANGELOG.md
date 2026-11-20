@@ -1,5 +1,69 @@
 # Changelog
 
+## 3.8.0 — 2026-11-20
+
+### Added
+
+- **Contact chemistry of each oligomer and lineage.** With
+  `--contact-classes`, Stage A (CoAnaPure engine) now also stores the
+  residue-class decomposition for every chain pair in contact, as sparse rows
+  in the cache (`pair_class_rows`, `pair_class_offsets`). Stage B sums the rows
+  of the chains of an oligomer: `oligomer_class_matrix`,
+  `segment_chemistry_timeseries` and `oligomer_chemistry_tables`, and
+  `coana chemistry --per-oligomer CSV --per-lineage CSV`. The per-pair rows of a
+  frame sum exactly to its system-wide class matrix and to its chain contact
+  map (tested). Older caches still load; they lack the per-pair rows, and the
+  new functions say so.
+- Checkpoints of runs with `--contact-classes` written by earlier versions are
+  not resumed (their frames lack the per-pair rows); the run restarts.
+
+- Stage A warns when the contact cutoff is not below half the smallest box
+  height (`coanapure.pbc.min_box_height`). Below that limit the minimum-image
+  contact search is exact for any cell shape, triclinic included (tested
+  against a brute-force search over 125 images in strongly skewed cells);
+  above it a chain can touch two images of another.
+
+### Changed
+
+- The `reason` text of guest-visit labels now states only what was observed
+  (order of events, retention, host-chain counts). "Catalytic" no longer says
+  the guest "promotes formation" and "passenger" no longer says it was
+  "recruited by the aggregate"; the labels themselves are unchanged. When the
+  assembly cannot be followed through the whole follow-up window, the reason
+  says so.
+- Roots are no longer called "nucleation events": `coana lineage` prints
+  "directed fates of roots" and the `--directed-out` help, the `directed_fates`
+  and `directed_fate_summary` docstrings and GUIDE section 8 say that roots
+  include clusters already present in the first frame (formation not observed),
+  that an on-pathway root may have reached the target by merging into an
+  existing aggregate, and that `frames_to_target` counts to the start of the
+  first reachable target segment. Column names, fate values and the CSV schema
+  are unchanged (regression test added).
+- GUIDE section 8 explains the two on-pathway routes of lineage fate (target
+  segment, or later material overlap) and the `target_reached` column.
+- Package metadata matches the Zenodo record and `CITATION.cff`: the PyPI
+  summary is the software's title ("Lineage-aware analysis of protein
+  aggregation in molecular dynamics"), with the same keywords and a link to
+  the Zenodo concept DOI.
+
+### Fixed
+
+- Documentation said Stage A runs "at constant memory". It streams the
+  coordinates, but keeps every frame's chain contact map until the cache is
+  written, so memory grows with the number of frames and the square of the
+  number of chains; README, the CoAnaPure docstrings and the package docstring
+  now say so. The README's stale test count is replaced by a statement of what
+  CI runs.
+
+- `coana precompute --hotspot-blocks N` failed on every trajectory with a box:
+  the box check reran frame 0 with the same settings and Stage A rejected one
+  frame for N blocks. The check now runs without the optional extras
+  (regression test added).
+- `coana chemistry` and `contact_class_summary` labelled polar–polar contacts
+  as "mixed polar/apolar": the mixed case was tested first and `{"polar"}` is a
+  subset of it. They are now labelled "polar". Counts and fractions per class
+  pair were always right; only the channel name was wrong.
+
 ## 3.7.0 — 2026-10-27
 
 Security, compatibility and report fixes, and a new license; every analysis

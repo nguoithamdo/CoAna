@@ -62,6 +62,9 @@ __all__ = [
     "hydrophobic_fraction_timeseries",
     "contact_class_census",
     "describe_contact_classes",
+    "oligomer_class_matrix",
+    "segment_chemistry_timeseries",
+    "oligomer_chemistry_tables",
 ]
 
 
@@ -359,10 +362,13 @@ def _channel_name(a: str, b: str) -> str:
         return "hydrophobic"
     if "aromatic" in pair and pair & {"cation"}:
         return "cation-pi"
-    if pair <= {"polar", "apolar", "aromatic"}:
-        return "mixed polar/apolar"
+    # polar-polar must be tested before the mixed case: {"polar"} is a subset of
+    # {"polar", "apolar", "aromatic"}, so testing the mixed case first filed every
+    # polar-polar contact under "mixed polar/apolar".
     if pair == {"polar"}:
         return "polar"
+    if pair <= {"polar", "apolar", "aromatic"}:
+        return "mixed polar/apolar"
     if "other" in pair:
         return "involves unclassified residues"
     return "polar/charged"
@@ -396,3 +402,147 @@ def hydrophobic_fraction_timeseries(cache) -> np.ndarray:
     total = np.triu(matrix).sum(axis=(1, 2)).astype(np.float64)
     with np.errstate(invalid="ignore", divide="ignore"):
         return np.where(total > 0, hydro / total, np.nan)
+
+
+# ---------------------------------------------------------------------------
+# per-oligomer chemistry
+# ---------------------------------------------------------------------------
+#
+# The system-wide class matrix answers "how do chains stick in this box". The
+# per-chain-pair rows answer it for one oligomer: summing the rows whose two
+# chains both belong to the oligomer gives the class matrix of the contacts that
+# hold that oligomer together, and following the oligomer through its segment
+# and lineage gives that chemistry over its lifetime.
+
+
+def _require_pair_classes(cache) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+    if getattr(cache, "pair_class_rows", None) is None:
+        raise ValueError(
+            "this cache carries no per-chain-pair contact classes. Rebuild Stage A "
+            "with `coana precompute --contact-classes` (coana 3.8 or later); "
+            "earlier caches store the class decomposition for the whole system only."
+        )
+    names = list(cache.meta.get("contact_classes") or CONTACT_CLASSES)
+    return cache.pair_class_rows, cache.pair_class_offsets, names
+
+
+def _channel_key(a: str, b: str) -> str:
+    return "".join(c if c.isalnum() else "_" for c in _channel_name(a, b)).strip("_")
+
+
+def _channel_index(names: Sequence[str]) -> Tuple[List[str], np.ndarray]:
+    """Channel names and, for every (i, j) class pair, the channel it belongs to."""
+    keys: List[str] = []
+    lookup = np.zeros((len(names), len(names)), dtype=np.int64)
+    for i in range(len(names)):
+        for j in range(i, len(names)):
+            key = _channel_key(names[i], names[j])
+            if key not in keys:
+                keys.append(key)
+            lookup[i, j] = lookup[j, i] = keys.index(key)
+    return keys, lookup
+
+
+def oligomer_class_matrix(cache, frame_index: int, members) -> np.ndarray:
+    """Class-pair matrix of the inter-chain contacts inside one oligomer.
+
+    ``frame_index`` is a cache index (as in ``segment.start_idx``), ``members``
+    the chain indices of the oligomer in that frame. Only contacts between two
+    member chains are counted; contacts with chains outside the oligomer are
+    not. The matrix follows the convention of ``cache.class_cmaps``: symmetric,
+    with ``np.triu(M).sum()`` equal to the number of residue contacts.
+    """
+    rows, offsets, names = _require_pair_classes(cache)
+    n = len(names)
+    r = rows[offsets[frame_index]:offsets[frame_index + 1]]
+    member_idx = np.fromiter((int(m) for m in members), dtype=np.int64)
+    mask = np.zeros(cache.cmaps.shape[1], dtype=bool)
+    mask[member_idx] = True
+    r = r[mask[r[:, 0]] & mask[r[:, 1]]]
+    raw = np.zeros((n, n), dtype=np.int64)
+    np.add.at(raw, (r[:, 2], r[:, 3]), r[:, 4])
+    matrix = raw + raw.T
+    np.fill_diagonal(matrix, np.diag(raw))
+    return matrix
+
+
+def _channel_counts(matrix: np.ndarray, keys: List[str], lookup: np.ndarray) -> np.ndarray:
+    upper = np.triu(matrix)
+    return np.bincount(lookup.ravel(), weights=upper.ravel(), minlength=len(keys))
+
+
+def segment_chemistry_timeseries(cache, segment) -> pd.DataFrame:
+    """Contact chemistry of one oligomer segment, frame by frame.
+
+    One row per frame of the segment: its size, the residue contacts between
+    its chains, the contacts in each interaction channel (salt bridge,
+    hydrophobic, ...) and the salt-bridge and hydrophobic fractions.
+    """
+    _rows, _offsets, names = _require_pair_classes(cache)
+    keys, lookup = _channel_index(names)
+    out = []
+    for k, members in enumerate(segment.sets):
+        idx = int(segment.start_idx) + k
+        counts = _channel_counts(oligomer_class_matrix(cache, idx, members), keys, lookup)
+        total = float(counts.sum())
+        row = {
+            "segment_id": segment.segment_id,
+            "lineage_id": segment.lineage_id,
+            "frame_idx": idx,
+            "frame": int(cache.frames[idx]),
+            "size": len(members),
+            "contacts": int(total),
+        }
+        row.update({key: int(c) for key, c in zip(keys, counts)})
+        for key in ("salt_bridge", "hydrophobic"):
+            if key in keys:
+                row[f"{key}_fraction"] = (
+                    float(counts[keys.index(key)] / total) if total > 0 else float("nan")
+                )
+        out.append(row)
+    return pd.DataFrame(out)
+
+
+def _pooled_rows(label: dict, sums: np.ndarray, n_frames: int, keys: List[str]) -> dict:
+    total = float(sums.sum())
+    row = dict(label)
+    row["frames"] = int(n_frames)
+    row["contacts"] = int(total)
+    row["mean_contacts"] = total / n_frames if n_frames else float("nan")
+    for key, s in zip(keys, sums):
+        row[f"{key}_fraction"] = float(s / total) if total > 0 else float("nan")
+    return row
+
+
+def oligomer_chemistry_tables(cache, result) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Contact chemistry of every oligomer segment and of every lineage.
+
+    Returns ``(segments, lineages)``. Each row pools the contacts of all frames
+    of the segment (or of all segments of the lineage) and gives the fraction of
+    them in each interaction channel, so a channel fraction is weighted by
+    contacts, not averaged over frames. ``mean_contacts`` is the mean number of
+    residue contacts holding the oligomer together per frame.
+    """
+    _rows, _offsets, names = _require_pair_classes(cache)
+    keys, lookup = _channel_index(names)
+    seg_rows, lin_sums, lin_frames = [], {}, {}
+    for seg in result.segments:
+        sums = np.zeros(len(keys), dtype=np.float64)
+        for k, members in enumerate(seg.sets):
+            sums += _channel_counts(
+                oligomer_class_matrix(cache, int(seg.start_idx) + k, members), keys, lookup
+            )
+        n = len(seg.sets)
+        seg_rows.append(_pooled_rows(
+            {"segment_id": seg.segment_id, "lineage_id": seg.lineage_id,
+             "start_frame": seg.start_frame, "max_size": seg.max_size},
+            sums, n, keys,
+        ))
+        lid = seg.lineage_id
+        lin_sums[lid] = lin_sums.get(lid, 0.0) + sums
+        lin_frames[lid] = lin_frames.get(lid, 0) + n
+    lin_rows = [
+        _pooled_rows({"lineage_id": lid}, lin_sums[lid], lin_frames[lid], keys)
+        for lid in lin_sums
+    ]
+    return pd.DataFrame(seg_rows), pd.DataFrame(lin_rows)

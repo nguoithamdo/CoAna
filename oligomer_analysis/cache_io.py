@@ -40,6 +40,39 @@ def validate_cache(cache: ContactCache) -> None:
         raise ValueError(
             "cache.hotspot_maps must be (n_blocks, n_species, n_species, n_res, n_res)"
         )
+    rows, offsets = cache.pair_class_rows, cache.pair_class_offsets
+    if (rows is None) != (offsets is None):
+        raise ValueError("cache.pair_class_rows and pair_class_offsets come together")
+    if rows is not None:
+        if rows.ndim != 2 or rows.shape[1] != 5:
+            raise ValueError("cache.pair_class_rows must be (n_rows, 5)")
+        if (
+            len(offsets) != n_frames + 1
+            or offsets[0] != 0
+            or offsets[-1] != len(rows)
+            or np.any(np.diff(offsets) < 0)
+        ):
+            raise ValueError(
+                "cache.pair_class_offsets must rise from 0 to len(pair_class_rows) "
+                "with one entry per frame plus one"
+            )
+
+
+def pack_pair_classes(per_frame) -> tuple[np.ndarray, np.ndarray]:
+    """Concatenate per-frame ``(m, 5)`` pair-class rows into rows and offsets."""
+    per_frame = [np.asarray(r, dtype=np.int32).reshape(-1, 5) for r in per_frame]
+    offsets = np.zeros(len(per_frame) + 1, dtype=np.int64)
+    if per_frame:
+        offsets[1:] = np.cumsum([len(r) for r in per_frame])
+        rows = np.concatenate(per_frame, axis=0)
+    else:
+        rows = np.empty((0, 5), dtype=np.int32)
+    return rows, offsets
+
+
+def unpack_pair_classes(rows: np.ndarray, offsets: np.ndarray) -> list:
+    """Split packed pair-class rows back into one ``(m, 5)`` array per frame."""
+    return [rows[offsets[i]:offsets[i + 1]] for i in range(len(offsets) - 1)]
 
 
 class _MetaUnpickler(pickle.Unpickler):
@@ -115,6 +148,10 @@ def load_cache(npz_path: str | Path) -> ContactCache:
         # existed, so they are read by presence, never assumed.
         class_cmaps=(z["class_cmaps"] if "class_cmaps" in keys else None),
         hotspot_maps=(z["hotspot_maps"] if "hotspot_maps" in keys else None),
+        pair_class_rows=(z["pair_class_rows"] if "pair_class_rows" in keys else None),
+        pair_class_offsets=(
+            z["pair_class_offsets"] if "pair_class_offsets" in keys else None
+        ),
     )
     validate_cache(cache)
     return cache
@@ -152,6 +189,10 @@ def save_cache(
         extra["class_cmaps"] = np.stack([r.class_cmap for r in results]).astype(
             np.int64, copy=False
         )
+    if results and all(r.pair_class is not None for r in results):
+        rows, offsets = pack_pair_classes([r.pair_class for r in results])
+        extra["pair_class_rows"] = rows
+        extra["pair_class_offsets"] = offsets
     if hotspot_maps is not None:
         extra["hotspot_maps"] = np.asarray(hotspot_maps, dtype=np.int64)
 
@@ -198,6 +239,9 @@ def save_contact_cache(cache: ContactCache, out_npz: str | Path, *, save_csv_sta
         extra["class_cmaps"] = cache.class_cmaps
     if cache.hotspot_maps is not None:
         extra["hotspot_maps"] = cache.hotspot_maps
+    if cache.pair_class_rows is not None:
+        extra["pair_class_rows"] = cache.pair_class_rows
+        extra["pair_class_offsets"] = cache.pair_class_offsets
     np.savez_compressed(
         out_npz,
         frames=cache.frames,
@@ -247,6 +291,10 @@ def subset_cache_by_indices(cache: ContactCache, indices) -> ContactCache:
     if cache.hotspot_maps is not None:
         meta.pop("hotspot_blocks", None)
         meta["hotspot_dropped_on_subset"] = True
+    pair_rows = pair_offsets = None
+    if cache.pair_class_rows is not None:
+        per_frame = unpack_pair_classes(cache.pair_class_rows, cache.pair_class_offsets)
+        pair_rows, pair_offsets = pack_pair_classes([per_frame[i] for i in indices])
     return ContactCache(
         frames=cache.frames[indices],
         cmaps=cache.cmaps[indices],
@@ -260,6 +308,8 @@ def subset_cache_by_indices(cache: ContactCache, indices) -> ContactCache:
         meta=meta,
         class_cmaps=(None if cache.class_cmaps is None else cache.class_cmaps[indices]),
         hotspot_maps=None,
+        pair_class_rows=pair_rows,
+        pair_class_offsets=pair_offsets,
     )
 
 

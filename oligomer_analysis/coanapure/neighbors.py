@@ -30,7 +30,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from .pbc import box_is_orthorhombic, minimize_vectors, wrap_positions
+from .pbc import box_is_orthorhombic, min_box_height, minimize_vectors, wrap_positions
 
 try:  # strongly recommended acceleration; falls back to pure cell lists when absent
     from scipy.spatial import cKDTree as _cKDTree
@@ -217,6 +217,16 @@ def self_capped_pairs(
     box6 = None
     if box is not None:
         box6 = np.asarray(box, dtype=np.float64)
+        if np.all(box6[:3] > 0) and cutoff >= 0.5 * min_box_height(box6):
+            warnings.warn(
+                f"contact cutoff {cutoff:g} A is not below half the smallest box "
+                f"height ({0.5 * min_box_height(box6):.3g} A): a chain can touch "
+                "more than one periodic image of another, and the minimum-image "
+                "contact count is no longer exact. Use a larger box or a smaller "
+                "cutoff.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
     ortho = box6 is not None and box_is_orthorhombic(box6) and np.all(box6[:3] > 0)
 

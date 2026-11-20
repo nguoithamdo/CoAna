@@ -49,7 +49,7 @@ from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
 
 import numpy as np
 
-from ..cache_io import save_cache
+from ..cache_io import pack_pair_classes, save_cache, unpack_pair_classes
 from ..models import FrameContacts, PrecomputeConfig
 from .neighbors import self_capped_pairs
 from .pbc import minimize_vectors
@@ -403,6 +403,38 @@ def _class_matrix_from_pairs(
     return matrix.astype(np.int64, copy=False)
 
 
+def _pair_class_rows_from_pairs(
+    seg_a: np.ndarray,
+    seg_b: np.ndarray,
+    class_a: np.ndarray,
+    class_b: np.ndarray,
+    nseg: int,
+    n_classes: int,
+) -> np.ndarray:
+    """Sparse class decomposition per chain pair for one frame's inter-chain pairs.
+
+    Returns ``(m, 5)`` int32 rows ``(chain_lo, chain_hi, class_lo, class_hi,
+    count)``. Both the chain pair and the class pair are unordered, matching
+    the convention of :func:`_class_matrix_from_pairs`, so the rows of a frame
+    summed into a class matrix reproduce its ``class_cmap`` exactly.
+    """
+    if len(seg_a) == 0:
+        return np.empty((0, 5), dtype=np.int32)
+    a, b = seg_a.astype(np.int64), seg_b.astype(np.int64)
+    c_lo = np.minimum(class_a, class_b).astype(np.int64)
+    c_hi = np.maximum(class_a, class_b).astype(np.int64)
+    lo, hi = np.minimum(a, b), np.maximum(a, b)
+    key = ((lo * nseg + hi) * n_classes + c_lo) * n_classes + c_hi
+    uniq, counts = np.unique(key, return_counts=True)
+    c_hi_u = uniq % n_classes
+    rest = uniq // n_classes
+    c_lo_u = rest % n_classes
+    rest //= n_classes
+    return np.stack(
+        (rest // nseg, rest % nseg, c_lo_u, c_hi_u, counts), axis=1
+    ).astype(np.int32)
+
+
 def _hotspot_from_pairs(
     seg_a: np.ndarray,
     seg_b: np.ndarray,
@@ -454,8 +486,9 @@ def _compute_frame_arrays(
     (:class:`~oligomer_analysis.coanapure.pdb_io.ResidueTopology` or
     :class:`~oligomer_analysis.coanapure.pdb_io.PDBStructure`).  Taking the
     per-frame arrays explicitly (instead of a whole in-memory trajectory) is what
-    lets Stage A stream a multi-GB file at constant memory and lets the frame
-    loop run on a thread pool.
+    lets Stage A stream a multi-GB file without loading its coordinates and lets
+    the frame loop run on a thread pool.  The per-frame results (chain contact
+    map, centres, box and optional extras) are kept until the cache is written.
     """
     nseg = topo["nseg"]
     seg_of_res = topo["seg_of_res"]
@@ -528,6 +561,7 @@ def _compute_frame_arrays(
                 if want_hotspot
                 else None
             ),
+            pair_class=(np.empty((0, 5), dtype=np.int32) if want_classes else None),
         )
 
     i = pairs[:, 0]
@@ -547,6 +581,7 @@ def _compute_frame_arrays(
     class_cmap = (
         np.zeros((n_classes, n_classes), dtype=np.int64) if want_classes else None
     )
+    pair_class = np.empty((0, 5), dtype=np.int32) if want_classes else None
     hotspot = None
     if want_hotspot:
         n_sp = len(species_tables["names"])
@@ -574,6 +609,9 @@ def _compute_frame_arrays(
             class_cmap = _class_matrix_from_pairs(
                 class_of_res[inter_i], class_of_res[inter_j], n_classes
             )
+            pair_class = _pair_class_rows_from_pairs(
+                a, b, class_of_res[inter_i], class_of_res[inter_j], nseg, n_classes
+            )
         if want_hotspot:
             inter_i = i[inter]
             inter_j = j[inter]
@@ -597,7 +635,7 @@ def _compute_frame_arrays(
     return FrameContacts(
         frame=frame_index, nintra=nintra, ninter=ninter, ntotal=ntotal,
         n_free=n_free, n_bound=n_bound, cmap=cmap, seg_centers=seg_centers, box=box_save,
-        class_cmap=class_cmap, hotspot=hotspot,
+        class_cmap=class_cmap, hotspot=hotspot, pair_class=pair_class,
     )
 
 
@@ -665,7 +703,8 @@ def _run_frame_loop(
 
     The producer (the trajectory parser) runs on the calling thread; frame
     computations run on up to ``workers`` threads with a bounded in-flight
-    window, so memory stays at O(workers) frames regardless of trajectory size.
+    window, so the coordinates held at once are O(workers) frames regardless of
+    trajectory size.  The returned per-frame results are kept by the caller.
     NumPy ufuncs and the scipy cKDTree release the GIL for the bulk of the frame
     work, which is what makes threads (rather than processes, which would have
     to re-read the file) effective here.
@@ -775,6 +814,11 @@ def _config_fingerprint(cfg: PrecomputeConfig, broadcast_box: bool) -> str:
         "hotspot_blocks": getattr(cfg, "hotspot_blocks", None),
         "broadcast_box": bool(broadcast_box),
     }
+    if payload["contact_classes"]:
+        # Checkpoints written before the per-chain-pair class rows existed lack
+        # them; a new key retires those checkpoints instead of resuming a run
+        # whose early frames would have no per-oligomer chemistry.
+        payload["pair_class_layout"] = "chain_pair_v1"
     blob = json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
     return hashlib.md5(blob).hexdigest()
 
@@ -793,6 +837,10 @@ def _write_checkpoint(
         extra["class_cmaps"] = np.stack([r.class_cmap for r in results]).astype(
             np.int64, copy=False
         )
+    if results and all(r.pair_class is not None for r in results):
+        rows, offsets = pack_pair_classes([r.pair_class for r in results])
+        extra["pair_class_rows"] = rows
+        extra["pair_class_offsets"] = offsets
     if hotspot_acc is not None:
         # The hotspot tensor is a running sum over the frames already in
         # ``results``; checkpointing the two together is what keeps a resumed run
@@ -834,6 +882,11 @@ def _load_checkpoint(
             topo_meta = json.loads(str(d["topo_meta_json"].item()))
             keys = set(d.files)
             has_classes = "class_cmaps" in keys
+            pair_rows = (
+                unpack_pair_classes(d["pair_class_rows"], d["pair_class_offsets"])
+                if "pair_class_rows" in keys
+                else None
+            )
             results = [
                 FrameContacts(
                     frame=int(d["frames"][i]),
@@ -846,6 +899,7 @@ def _load_checkpoint(
                     seg_centers=d["seg_centers"][i].copy(),
                     box=d["boxes"][i].copy(),
                     class_cmap=(d["class_cmaps"][i].copy() if has_classes else None),
+                    pair_class=(pair_rows[i].copy() if pair_rows is not None else None),
                 )
                 for i in range(len(d["frames"]))
             ]
@@ -1022,7 +1076,12 @@ def precompute_cache_pure(
 
     Signature-compatible with :func:`oligomer_analysis.precompute.precompute_cache`.
     The trajectory is **streamed**: frames are parsed and consumed one at a time,
-    so peak memory is O(``cfg.n_jobs`` frames) regardless of trajectory length.
+    so the coordinates held at once are O(``cfg.n_jobs`` frames) regardless of
+    trajectory length.  The per-frame results, a dense ``n_chains x n_chains``
+    contact map per frame plus centres, box and optional extras, are kept for
+    every requested frame until the cache is written, so peak memory grows
+    linearly with the number of frames and with the square of the number of
+    chains (about 6 GB for 2000 chains and 200 frames).
     ``cfg.n_jobs`` (joblib convention, ``-1`` = all CPUs) sets the worker count.
 
     Supported trajectory formats: ``.pdb`` (single- or multi-``MODEL``), ``.gro``

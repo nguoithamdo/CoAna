@@ -168,6 +168,7 @@ catalytic, passenger, promoting, or bystander.
 | 6 / 9 Oct 2026 | 3.5.0 / 3.5.1 | Branch-local mechanism; review fixes |
 | 23–24 Oct 2026 | 3.6.0 | Audit, MIT license, renamed `coana`, public on GitHub |
 | 27 Oct 2026 | 3.7.0 | All versions relicensed under the LGPL-2.1-or-later; `coana citations` |
+| 20 Nov 2026 | 3.8.0 | Per-oligomer and per-lineage contact chemistry |
 
 ---
 

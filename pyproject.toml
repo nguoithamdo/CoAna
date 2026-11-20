@@ -5,13 +5,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coana"
-version = "3.7.0"
+version = "3.8.0"
 license = "LGPL-2.1-or-later"
 license-files = ["LICENSE", "NOTICE", "AUTHORS"]
 authors = [{ name = "Nguyen Truong Co" }]
-description = "MD trajectory oligomer contact analysis and pathway monitoring"
+description = "Lineage-aware analysis of protein aggregation in molecular dynamics"
 readme = "README.md"
 requires-python = ">=3.10"
+keywords = ["molecular dynamics", "protein aggregation", "oligomers", "Martini", "amyloid"]
 dependencies = [
   "numpy",
   # scipy powers the CoAnaPure neighbour search (cKDTree). Without it the pure
@@ -37,6 +38,7 @@ Homepage = "https://github.com/nguoithamdo/CoAna"
 Source = "https://github.com/nguoithamdo/CoAna"
 Issues = "https://github.com/nguoithamdo/CoAna/issues"
 Changelog = "https://github.com/nguoithamdo/CoAna/blob/main/CHANGELOG.md"
+DOI = "https://doi.org/10.5281/zenodo.23623975"
 
 [project.optional-dependencies]
 mdanalysis = ["MDAnalysis"]

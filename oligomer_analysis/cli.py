@@ -186,7 +186,12 @@ def _first_frame_has_box(cfg, args) -> bool:
     from .coanapure import precompute_cache_pure
     from .coanapure.precompute_pure import NoBoxWarning
 
-    probe = dataclasses.replace(cfg, frames=list(cfg.frames)[:1], n_jobs=1)
+    # The probe only needs the box. Optional extras are switched off: with
+    # hotspot blocks on, a one-frame probe raised "hotspot_blocks=N exceeds the 1
+    # requested frames" and the whole command failed on a boxed trajectory.
+    probe = dataclasses.replace(
+        cfg, frames=list(cfg.frames)[:1], n_jobs=1, contact_classes=False, hotspot_blocks=None
+    )
     with tempfile.TemporaryDirectory() as tmp:
         out = os.path.join(tmp, "probe.npz")
         with warnings.catch_warnings():
@@ -232,6 +237,8 @@ def _cmd_info(args: argparse.Namespace) -> int:
     extras = []
     if cache.class_cmaps is not None:
         extras.append(f"contact classes {cache.class_cmaps.shape[1]}x{cache.class_cmaps.shape[2]}")
+    if cache.pair_class_rows is not None:
+        extras.append(f"per-chain-pair classes ({len(cache.pair_class_rows)} rows)")
     if cache.hotspot_maps is not None:
         extras.append(f"residue hotspots in {cache.hotspot_maps.shape[0]} block(s)")
     print(f"  extras : {', '.join(extras) if extras else 'none'}")
@@ -515,6 +522,20 @@ def _cmd_chemistry(args) -> int:
     _write_csv(
         contact_class_dataframe(cache) if args.long else summary, args.out, "chemistry"
     )
+    if args.per_oligomer or args.per_lineage:
+        from .chemistry import oligomer_chemistry_tables
+        from .lineage import build_lineages_from_cache
+
+        result = build_lineages_from_cache(
+            cache,
+            inter_thresh=args.inter_thresh,
+            cluster_min_size=args.cluster_min_size,
+            target_config=_target_config(args),
+        )
+        segs, lins = oligomer_chemistry_tables(cache, result)
+        print(f"\nper-oligomer chemistry: {len(segs)} segments, {len(lins)} lineages")
+        _write_csv(segs, args.per_oligomer, "per-oligomer chemistry")
+        _write_csv(lins, args.per_lineage, "per-lineage chemistry")
     return 0
 
 
@@ -626,7 +647,8 @@ def _cmd_lineage(args) -> int:
 
     directed = directed_fates(result)
     if not directed.empty:
-        print("\ndirected fates of nucleation events (forward descendants only):")
+        print("\ndirected fates of roots (clusters of the first frame and later births; "
+              "forward descendants only):")
         print(directed_fate_summary(directed, min_span=args.lineage_min_duration).to_string(index=False))
     if args.directed_out:
         _write_csv(directed, args.directed_out, "directed fates")
@@ -1159,6 +1181,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--long", action="store_true",
                    help="write the per-frame long-form table instead of the summary")
     p.add_argument("-o", "--out", default=None)
+    p.add_argument("--per-oligomer", default=None, metavar="CSV",
+                   help="also write the contact chemistry of every oligomer segment "
+                        "(needs a cache from coana 3.8 or later)")
+    p.add_argument("--per-lineage", default=None, metavar="CSV",
+                   help="also write the contact chemistry pooled over each lineage")
+    add_lineage_args(p)
     p.set_defaults(func=_cmd_chemistry)
 
     p = sub.add_parser(
@@ -1211,8 +1239,8 @@ def _build_parser() -> argparse.ArgumentParser:
     add_lineage_args(p)
     p.add_argument("-o", "--out", default=None)
     p.add_argument("--directed-out", default=None, metavar="CSV",
-                   help="write the directed fate of every nucleation event "
-                        "(forward descendants only) to CSV")
+                   help="write the directed fate of every root (cluster of the first "
+                        "frame or later birth; forward descendants only) to CSV")
     p.set_defaults(func=_cmd_lineage)
 
     p = sub.add_parser(
