@@ -47,6 +47,7 @@ own DOI, cite that one instead:
 |---|---|
 | 3.6.1 | [10.5281/zenodo.23623976](https://doi.org/10.5281/zenodo.23623976) |
 | 3.7.0 | [10.5281/zenodo.23690737](https://doi.org/10.5281/zenodo.23690737) |
+| 3.8.0 | [10.5281/zenodo.24400562](https://doi.org/10.5281/zenodo.24400562) |
 
 GitHub's "Cite this repository" button gives the same reference from
 `CITATION.cff`.
