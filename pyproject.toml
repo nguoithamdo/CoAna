@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coana"
-version = "3.8.0"
+version = "3.8.1"
 license = "LGPL-2.1-or-later"
 license-files = ["LICENSE", "NOTICE", "AUTHORS"]
 authors = [{ name = "Nguyen Truong Co" }]
