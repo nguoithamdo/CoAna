@@ -108,3 +108,11 @@ def test_ported_xdrfile_code_keeps_its_bsd_notice():
     assert "SPDX-License-Identifier: LGPL-2.1-or-later AND BSD-2-Clause" in head
     assert "Copyright (c) 2009-2014, Erik Lindahl & David van der Spoel" in head
     assert "Erik Lindahl & David van der Spoel" in (ROOT / "NOTICE").read_text(encoding="utf-8")
+
+
+def test_readme_links_are_absolute():
+    """PyPI shows README.md without the repository, so a relative link 404s there."""
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    targets = re.findall(r"\]\(([^)\s]+)", text) + re.findall(r'(?:src|href)="([^"]+)"', text)
+    relative = [t for t in targets if not re.match(r"(https?:|mailto:|#)", t)]
+    assert not relative, f"use absolute GitHub URLs in README.md: {relative}"

@@ -5,8 +5,8 @@
 [![PyPI](https://img.shields.io/pypi/v/coana.svg)](https://pypi.org/project/coana/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23623975.svg)](https://doi.org/10.5281/zenodo.23623975)
 [![tests](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml/badge.svg)](https://github.com/nguoithamdo/CoAna/actions/workflows/ci.yml)
-[![License: LGPL-2.1-or-later](https://img.shields.io/badge/license-LGPL--2.1--or--later-blue.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![License: LGPL-2.1-or-later](https://img.shields.io/badge/license-LGPL--2.1--or--later-blue.svg)](https://github.com/nguoithamdo/CoAna/blob/main/LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://github.com/nguoithamdo/CoAna/blob/main/pyproject.toml)
 
 An MD aggregation run produces thousands of transient clusters. Most of them
 dissolve. CoAna follows every assembly through each split and merge, then tells
@@ -80,7 +80,7 @@ coana report cache_cut6.5.npz -o report.html --title "128-mer aggregation"
 coana timeline cache_cut6.5.npz -o TIMELINE.html --frame-lo 640 --frame-hi 820
 ```
 
-Running on a SLURM cluster? Section 14 of [GUIDE.md](GUIDE.md) has a batch
+Running on a SLURM cluster? Section 14 of [GUIDE.md](https://github.com/nguoithamdo/CoAna/blob/main/GUIDE.md) has a batch
 script; `--checkpoint-every` and `--resume` make Stage A safe under walltime
 limits.
 
@@ -121,7 +121,7 @@ coana export    cache.npz --what both --composition-states --out-dir gexf/
 
 `--contact-classes` and `--hotspot-blocks` must be requested at Stage A (residue
 identity is gone once contacts are binned to chains); everything else works on
-any existing cache. Section 17 of [GUIDE.md](GUIDE.md) walks through each command
+any existing cache. Section 17 of [GUIDE.md](https://github.com/nguoithamdo/CoAna/blob/main/GUIDE.md) walks through each command
 with a worked synthetic example; `tests/test_v34_features.py` holds the
 hand-derived expectations they are verified against.
 
@@ -456,7 +456,7 @@ plot_small_world_range(cache, finished, label, 0, 23, inter_thresh=1, panel9_nod
 ## Author
 
 CoAna is developed by **Dr. Nguyen Truong Co** (Truong Co Group) since January 2024;
-see [HISTORY.md](HISTORY.md) for how it grew.
+see [HISTORY.md](https://github.com/nguoithamdo/CoAna/blob/main/HISTORY.md) for how it grew.
 [ORCID 0000-0001-5642-3641](https://orcid.org/0000-0001-5642-3641) ·
 [Google Scholar](https://scholar.google.com/citations?user=0ttB9NsAAAAJ)
 
@@ -479,7 +479,7 @@ Suggested acknowledgment:
 
 `coana citations` prints the references for your installed version, including
 the published methods some analyses implement (`--bibtex` for BibTeX).
-[CITATION.md](CITATION.md) has the full policy; GitHub's "Cite this
+[CITATION.md](https://github.com/nguoithamdo/CoAna/blob/main/CITATION.md) has the full policy; GitHub's "Cite this
 repository" button reads `CITATION.cff`. Citing is a request, not a condition
 of the license.
 
@@ -490,7 +490,7 @@ License, version 2.1 or later** (SPDX: `LGPL-2.1-or-later`), the license model
 of GROMACS. You may use it for academic, educational and commercial work,
 modify it, redistribute it, and use it from other software, including
 proprietary software, under the LGPL's conditions; redistributed changes to
-CoAna itself must remain under the LGPL. See [LICENSE](LICENSE) for the full
-text and [NOTICE](NOTICE) for copyright and third-party code. The license
+CoAna itself must remain under the LGPL. See [LICENSE](https://github.com/nguoithamdo/CoAna/blob/main/LICENSE) for the full
+text and [NOTICE](https://github.com/nguoithamdo/CoAna/blob/main/NOTICE) for copyright and third-party code. The license
 covers every version of CoAna, including 3.6.0 and 3.6.1, which were first
 published under MIT.

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **Broken links on the PyPI page.** The README linked to LICENSE, NOTICE,
+  GUIDE.md, HISTORY.md, CITATION.md and pyproject.toml by relative path. PyPI
+  shows the README without the repository, so these links opened pages such as
+  `pypi.org/project/coana/HISTORY.md/` and returned Not Found. They now point to
+  the files on GitHub, and a test fails if a relative link comes back.
+
 ## 3.8.0 — 2026-11-20
 
 ### Added
